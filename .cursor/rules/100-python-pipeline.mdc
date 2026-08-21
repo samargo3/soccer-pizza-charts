@@ -1,0 +1,46 @@
+---
+description: Conventions for the Python data pipeline (ingest, transform, compute)
+globs: ["pipeline/**/*.py"]
+alwaysApply: false
+---
+
+# Python pipeline conventions
+
+## Structure
+
+The pipeline is three clearly separated stages — keep them in separate modules:
+
+- `ingest.py` — fetch from the source (FBref via `soccerdata`) and cache raw
+  files locally. This stage is deliberately "dumb": get the data, save it, never
+  re-download what's already cached. No cleaning or business logic here.
+- `transform.py` — where domain knowledge lives: clean the data, convert season
+  totals to per-90 rates, tag players into position groups, apply minutes
+  thresholds. Input is raw cached data, output is a clean table.
+- `compute.py` — turn clean stats into percentile ranks within each peer group.
+  This is the number the chart displays.
+
+Serving (exporting the computed table to static JSON) can live in `compute.py`
+or its own `export.py`.
+
+## Code style
+
+- Python 3.12+. Use type hints on function signatures.
+- Use `pandas` for tabular work; `duckdb` / `pyarrow` (Parquet) for storage
+  between stages.
+- Short docstrings on functions. Explain any non-obvious soccer calculation and
+  reference `docs/metrics.md`.
+- No hardcoded file paths scattered through the code — centralize paths/config.
+- Prefer pure functions that take a DataFrame and return a DataFrame; keep I/O
+  (fetching, reading, writing) at the edges.
+
+## Data handling
+
+- Cache raw fetched data; never re-fetch what exists. Respect source rate limits.
+- Never commit data files (see `.gitignore`).
+- Percentiles are computed WITHIN a peer group (e.g. same position group), not
+  across all players — get this right, it's the core of the chart's meaning.
+
+## Testing
+
+- Add a `pytest` test alongside new pipeline logic, especially for transforms
+  and percentile computation. Test the math on a small hand-checkable example.

@@ -1,0 +1,35 @@
+---
+description: Conventions for the React + D3 frontend UI (Phase 3+)
+globs: ["web/**/*.ts", "web/**/*.tsx"]
+alwaysApply: false
+---
+
+# Frontend conventions (Phase 3+)
+
+> Not built yet — this rule guides the UI once Phase 3 starts.
+
+## Stack
+
+Vite + React + TypeScript. `d3` for the chart geometry (arc generators).
+
+## Data contract
+
+- The UI reads the static JSON files produced by the pipeline. That's its only
+  data source. Never fetch from FBref or any external stats API in the frontend.
+- Treat the JSON shape as a contract. If the UI needs a different shape, change
+  the pipeline's export step — don't reshape heavily in the browser.
+
+## Chart conventions
+
+- The pizza chart is drawn with D3 arc generators: each slice's length encodes a
+  percentile (0–100). Slices are grouped into categories (e.g. defence,
+  possession, progression, attack).
+- Keep the chart component pure and data-driven: it receives player data as
+  props and renders; it doesn't fetch.
+
+## Code style
+
+- TypeScript: type the data structures that mirror the JSON. Avoid `any`.
+- Functional components with hooks.
+- Keep computation out of components where possible — the pipeline already did
+  the math; the UI just draws.

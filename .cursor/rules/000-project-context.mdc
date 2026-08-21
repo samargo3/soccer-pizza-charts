@@ -1,0 +1,47 @@
+---
+description: Overall project context and working conventions for the soccer pizza charts project
+alwaysApply: true
+---
+
+# Project: Soccer Pizza Charts
+
+An end-to-end learning project: pull soccer stats, compute percentile rankings,
+and render interactive "pizza" charts. Long-term goal is to learn the full
+data-to-visualization pattern and later apply it to business analytics.
+
+## Architecture (do not violate this separation)
+
+Data flows one direction: source → pipeline → static JSON → UI.
+
+- The **pipeline** (Python) fetches, cleans, and computes; it writes JSON.
+- The **UI** (React + D3, added in Phase 3) only ever reads the exported JSON.
+- The UI must NEVER fetch from the data source directly.
+- JSON files are the handshake between the two halves.
+
+## Languages
+
+- Python for everything data-side (`pipeline/`).
+- TypeScript / React for the UI (`web/`, added later).
+
+## Working conventions
+
+- Prefer the smallest change that solves the task. One logical change per step.
+- Before implementing, briefly confirm your understanding of the task.
+- When a change involves a soccer-domain calculation (per-90 rates, percentiles,
+  position groups, minutes thresholds), add a short comment explaining the math
+  and reference `docs/metrics.md`.
+- Never invent metric definitions. If a stat isn't in `docs/metrics.md`, say so
+  and ask, or propose adding it to the doc first.
+- Don't add a dependency without noting why; check it isn't already present.
+- Keep secrets and data out of git — see `.gitignore`.
+
+## Where things go
+
+- Pipeline code → `pipeline/` (see the python-pipeline rule for structure).
+- Docs → `docs/` (metrics, dev log, ADRs).
+- Any significant decision → a new ADR in `docs/adr/`.
+
+## When unsure
+
+Ask before large refactors, before deleting files, and before changing the
+pipeline→JSON→UI contract. Surface trade-offs rather than silently choosing.

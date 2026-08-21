@@ -1,0 +1,43 @@
+# ---- Data (never commit raw or cached data) ----
+data/
+*.parquet
+*.duckdb
+*.duckdb.wal
+*.csv
+!docs/**/*.csv          # allow small example CSVs in docs if ever needed
+
+# ---- Secrets / env ----
+.env
+.env.*
+!.env.example
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env/
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+
+# ---- Node / frontend (Phase 3+) ----
+node_modules/
+web/dist/
+web/.vite/
+npm-debug.log*
+yarn-error.log*
+
+# ---- Editor / OS ----
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+
+# Cursor: keep .cursor/rules (they're versioned), ignore local Cursor state
+.cursor/*
+!.cursor/rules/
