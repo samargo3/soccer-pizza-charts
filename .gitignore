@@ -41,3 +41,13 @@ Thumbs.db
 # Cursor: keep .cursor/rules (they're versioned), ignore local Cursor state
 .cursor/*
 !.cursor/rules/
+
+# Matplotlib cache used when HOME isn't writable
+.mplconfig/
+
+# Salesforce CLI state (work tooling, unrelated to this project)
+.sf/
+.sfdx/
+
+# SeleniumBase / chromedriver leftovers from earlier FBref fetching
+notebooks/downloaded_files/
