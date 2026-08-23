@@ -1,0 +1,25 @@
+[project]
+name = "soccer-pizza-charts"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Sam Argo", email = "sammarkargo@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "ipykernel>=7.3.0",
+    "jupyter>=1.1.1",
+    "mplsoccer>=1.8.0",
+    "pandas>=3.0.5",
+    "pyarrow>=25.0.1",
+    "soccerdata>=1.9.1",
+    "statsbombpy>=1.22.0",
+]
+
+[project.scripts]
+soccer-pizza-charts = "soccer_pizza_charts:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"

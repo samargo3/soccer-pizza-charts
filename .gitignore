@@ -41,3 +41,6 @@ Thumbs.db
 # Cursor: keep .cursor/rules (they're versioned), ignore local Cursor state
 .cursor/*
 !.cursor/rules/
+
+# Matplotlib cache used when HOME isn't writable
+.mplconfig/
