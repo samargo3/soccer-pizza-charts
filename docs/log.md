@@ -5,6 +5,18 @@ Newest entries at the top. This is for your future self — keep it low-effort.
 
 ---
 
+## 2026-08-24 — Phase 2 step 2b: JSON schema_version 2
+
+- Metadata only: `higher_is_better` on each metric, top-level `categories`
+  (colors match the pizza), `generated_at`, `data_source`. Percentiles unchanged.
+- Path is now `outputs/json/v2/...`. Contract documented in `docs/schema.md`.
+
+## 2026-08-24 — Phase 2 step 2: percentiles + player JSON export
+
+- Percentile math was already in `compute.py` (pandas `rank(method="average", pct=True)*100`, Forward pool, ≥900 minutes, 12 higher-is-better per-90 slices). Kept it.
+- The Phase 1 notebook never computed percentiles; `compute.py` is the source of truth. Aligned `PIZZA_METRICS` column names to the player-season parquet (`np_goals_per90`, `key_passes_per90`, …).
+- New JSON: `export_player_json` (pure dict) + `write_player_json` → `outputs/json/v1/la_liga_2015_16/<player>.json`. Schema version 1, one file per player. Did not change chart rendering.
+
 ## 2026-08-24 — Phase 2 step 1b: move pipeline into src-layout package
 
 - Moved `ingest.py` / `transform.py` / `compute.py` from `pipeline/` into

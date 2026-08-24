@@ -1,4 +1,4 @@
-"""Percentile ranks within a peer group, plus the pizza chart.
+"""Percentile ranks within a peer group, pizza chart, and player JSON export.
 
 Reads the completed player-season table. Does not re-fetch events or
 recompute counting / per-90 metrics. See docs/metrics.md.
@@ -6,7 +6,12 @@ recompute counting / per-90 metrics. See docs/metrics.md.
 
 from __future__ import annotations
 
+import json
 import os
+import re
+import unicodedata
+from datetime import datetime, timezone
+from importlib.metadata import version as pkg_version
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -20,12 +25,16 @@ DATA_DIR = REPO_ROOT / "data"
 PLAYER_SEASON_PARQUET = DATA_DIR / "player_season_la_liga_2015_16.parquet"
 OUTPUTS_DIR = REPO_ROOT / "outputs"
 CHART_PATH = OUTPUTS_DIR / "luis_suarez_la_liga_2015_16.png"
+JSON_DIR = OUTPUTS_DIR / "json"
 
 # Matplotlib cache inside the repo so sandboxed runs don't need $HOME.
 os.environ.setdefault("MPLCONFIGDIR", str(REPO_ROOT / ".mplconfig"))
 
 # Minutes floor for the comparison pool. Recorded in docs/metrics.md.
 MIN_MINUTES = 900
+SCHEMA_VERSION = 2
+LEAGUE = "La Liga"
+SEASON = "2015/16"
 
 PLAYER_NAME = "Luis Alberto Suárez Díaz"
 
@@ -78,6 +87,21 @@ CATEGORY_COLORS = {
     "Defending": "#2471A3",
 }
 
+# Display metadata for the UI. Colors match the pizza (CATEGORY_COLORS).
+# `key` is stable; `label` is what metric.category currently stores.
+CATEGORIES: list[dict[str, str]] = [
+    {"key": "attacking", "label": "Attacking", "color": CATEGORY_COLORS["Attacking"]},
+    {
+        "key": "possession_progression",
+        "label": "Possession/Progression",
+        "color": CATEGORY_COLORS["Possession/Progression"],
+    },
+    {"key": "defending", "label": "Defending", "color": CATEGORY_COLORS["Defending"]},
+]
+
+DATA_SOURCE_PROVIDER = "StatsBomb open data"
+DATA_SOURCE_LIBRARY = "statsbombpy"
+
 
 def position_group(position: object) -> str | None:
     """Map a StatsBomb position string to Forward / Midfielder / Defender / GK."""
@@ -92,16 +116,25 @@ def add_position_group(table: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
+def build_peer_group(
+    table: pd.DataFrame,
+    position_group: str = PEER_GROUP,
+    min_minutes: int = MIN_MINUTES,
+) -> pd.DataFrame:
+    """Players in `position_group` with at least `min_minutes`. docs/metrics.md."""
+    tagged = add_position_group(table)
+    return tagged.loc[
+        tagged["position_group"].eq(position_group) & tagged["minutes"].ge(min_minutes)
+    ].copy()
+
+
 def comparison_pool(
     table: pd.DataFrame,
     group: str = PEER_GROUP,
     min_minutes: int = MIN_MINUTES,
 ) -> pd.DataFrame:
-    """Players in `group` with at least `min_minutes`. docs/metrics.md."""
-    tagged = add_position_group(table)
-    return tagged.loc[
-        tagged["position_group"].eq(group) & tagged["minutes"].ge(min_minutes)
-    ].copy()
+    """Alias for build_peer_group (Phase 1 name)."""
+    return build_peer_group(table, position_group=group, min_minutes=min_minutes)
 
 
 def percentile_ranks(series: pd.Series) -> pd.Series:
@@ -110,6 +143,22 @@ def percentile_ranks(series: pd.Series) -> pd.Series:
     Average rank on ties. Scaled with pct=True so the maximum is 100.
     """
     return series.rank(method="average", pct=True) * 100.0
+
+
+def compute_percentiles(
+    table: pd.DataFrame,
+    metrics: list[tuple[str, str, str]] = PIZZA_METRICS,
+) -> pd.DataFrame:
+    """Percentile rank (0–100) of each metric, ranked within `table`.
+
+    `table` should already be the peer group (see build_peer_group). Uses
+    per-90 columns; pass_completion_pct is already a rate. All 12 metrics
+    are higher-is-better. docs/metrics.md.
+    """
+    out = table.copy()
+    for column, _label, _category in metrics:
+        out[f"{column}_percentile"] = percentile_ranks(out[column])
+    return out
 
 
 def player_percentiles(
@@ -122,18 +171,130 @@ def player_percentiles(
     player = pool.loc[pool["player"].eq(player_name)]
     if player.empty:
         raise KeyError(f"{player_name!r} is not in the comparison pool")
+    ranked = compute_percentiles(pool, metrics)
+    idx = player.index[0]
     for column, label, category in metrics:
-        ranks = percentile_ranks(pool[column])
         rows.append(
             {
                 "metric": label,
                 "column": column,
                 "category": category,
                 "value": float(player[column].iloc[0]),
-                "percentile": float(ranks.loc[player.index[0]]),
+                "percentile": float(ranked.loc[idx, f"{column}_percentile"]),
             }
         )
     return pd.DataFrame(rows)
+
+
+def _slug(text: str) -> str:
+    ascii_text = (
+        unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
+    )
+    return re.sub(r"[^a-z0-9]+", "_", ascii_text.lower()).strip("_")
+
+
+def player_json_path(
+    player_name: str,
+    league: str = LEAGUE,
+    season: str = SEASON,
+    schema_version: int = SCHEMA_VERSION,
+) -> Path:
+    """Versioned path: outputs/json/v{n}/{league}_{season}/{player}.json."""
+    return (
+        JSON_DIR
+        / f"v{schema_version}"
+        / f"{_slug(league)}_{_slug(season)}"
+        / f"{_slug(player_name)}.json"
+    )
+
+
+def export_player_json(
+    percentiles: pd.DataFrame,
+    *,
+    player_name: str,
+    position_group: str,
+    minutes: float,
+    league: str,
+    season: str,
+    min_minutes: int,
+    peer_group_size: int,
+    position: str | None = None,
+    schema_version: int = SCHEMA_VERSION,
+    generated_at: str | None = None,
+) -> dict[str, object]:
+    """One player's chart as a dict. No file I/O. See docs/schema.md.
+
+    JSON shape (schema_version 2) — one file describes one player's pizza.
+    Percentile / value_per90 numbers are unchanged from schema 1.
+    """
+    slices: list[dict[str, object]] = []
+    for row in percentiles.itertuples(index=False):
+        slices.append(
+            {
+                "metric": row.column,
+                "label": row.metric,
+                "category": row.category,
+                "value_per90": float(row.value),
+                "percentile": float(row.percentile),
+                # All 12 pizza metrics are higher-is-better today. The UI
+                # must read this flag, not assume direction. docs/metrics.md.
+                "higher_is_better": True,
+            }
+        )
+    if generated_at is None:
+        generated_at = datetime.now(timezone.utc).isoformat()
+    return {
+        "schema_version": schema_version,
+        "generated_at": generated_at,
+        "data_source": {
+            "provider": DATA_SOURCE_PROVIDER,
+            "library": DATA_SOURCE_LIBRARY,
+            "version": pkg_version(DATA_SOURCE_LIBRARY),
+        },
+        "player": {
+            "name": player_name,
+            "position": position,
+            "position_group": position_group,
+            "minutes": float(minutes),
+        },
+        "competition": {
+            "league": league,
+            "season": season,
+        },
+        "peer_group": {
+            "position_group": position_group,
+            "min_minutes": int(min_minutes),
+            "n_players": int(peer_group_size),
+            "description": (
+                f"{position_group}s with at least {min_minutes} minutes, "
+                f"{league} {season}"
+            ),
+        },
+        "categories": [dict(item) for item in CATEGORIES],
+        "metrics": slices,
+    }
+
+
+def write_player_json(payload: dict[str, object], path: Path | None = None) -> Path:
+    """Thin writer. Default path is player_json_path from payload metadata."""
+    if path is None:
+        player = payload["player"]
+        competition = payload["competition"]
+        assert isinstance(player, dict)
+        assert isinstance(competition, dict)
+        path = player_json_path(
+            str(player["name"]),
+            league=str(competition["league"]),
+            season=str(competition["season"]),
+            schema_version=int(payload["schema_version"]),
+        )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    return path
+
 
 
 def render_pizza(
@@ -233,6 +394,21 @@ def main() -> None:
     )
 
     minutes = float(pool.loc[pool["player"].eq(PLAYER_NAME), "minutes"].iloc[0])
+    position = str(pool.loc[pool["player"].eq(PLAYER_NAME), "position"].iloc[0])
+    payload = export_player_json(
+        pct,
+        player_name=PLAYER_NAME,
+        position_group=PEER_GROUP,
+        minutes=minutes,
+        league=LEAGUE,
+        season=SEASON,
+        min_minutes=MIN_MINUTES,
+        peer_group_size=len(pool),
+        position=position,
+    )
+    json_path = write_player_json(payload)
+    print("\nwrote", json_path)
+
     path = render_pizza(pct, PLAYER_NAME, minutes, len(pool))
     print("\nsaved", path)
 
