@@ -20,7 +20,7 @@ Data flows one direction: source → pipeline → static JSON → UI.
 
 ## Languages
 
-- Python for everything data-side (`pipeline/`).
+- Python for everything data-side (`src/soccer_pizza_charts/`).
 - TypeScript / React for the UI (`web/`, added later).
 
 ## Working conventions
@@ -37,7 +37,8 @@ Data flows one direction: source → pipeline → static JSON → UI.
 
 ## Where things go
 
-- Pipeline code → `pipeline/` (see the python-pipeline rule for structure).
+- Pipeline code → `src/soccer_pizza_charts/` (see the python-pipeline rule for
+  structure: ingest / transform / compute).
 - Docs → `docs/` (metrics, dev log, ADRs).
 - Any significant decision → a new ADR in `docs/adr/`.
 

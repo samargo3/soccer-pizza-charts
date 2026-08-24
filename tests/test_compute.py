@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from pipeline.compute import (
+from soccer_pizza_charts.compute import (
     POSITION_GROUP,
     comparison_pool,
     percentile_ranks,

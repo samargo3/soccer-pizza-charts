@@ -1,14 +1,19 @@
 ---
 description: Conventions for the Python data pipeline (ingest, transform, compute)
-globs: ["pipeline/**/*.py"]
+globs: ["src/soccer_pizza_charts/**/*.py"]
 alwaysApply: false
 ---
 
 # Python pipeline conventions
 
+Code lives in `src/soccer_pizza_charts/` (ingest / transform / compute).
+The conceptual split is unchanged; only the folder path moved off `pipeline/`.
+
 ## Structure
 
-The pipeline is three clearly separated stages — keep them in separate modules:
+Import as `from soccer_pizza_charts.transform import ...` (same for ingest
+and compute). The pipeline is three clearly separated stages — keep them in
+separate modules:
 
 - `ingest.py` — fetch from the source (FBref via `soccerdata`) and cache raw
   files locally. This stage is deliberately "dumb": get the data, save it, never

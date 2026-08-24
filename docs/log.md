@@ -5,6 +5,45 @@ Newest entries at the top. This is for your future self — keep it low-effort.
 
 ---
 
+## 2026-08-24 — Phase 2 step 1b: move pipeline into src-layout package
+
+- Moved `ingest.py` / `transform.py` / `compute.py` from `pipeline/` into
+  `src/soccer_pizza_charts/`. Kept the existing implementations (not empty
+  stubs) so ingest/compute tests stay green. Replaced the uv hello-world
+  `main()` with a one-line package docstring.
+- Imports are now `from soccer_pizza_charts.transform import ...`. Removed
+  the pytest `pythonpath=["."]` shim; package is installed editable via uv.
+- Deleted `pipeline/`. Conceptual ingest → transform → compute split is
+  unchanged; only the folder path moved.
+
+## 2026-08-23 — Phase 2 step 1: extract transform into tested module
+
+- (Superseded by step 1b.) Transform lived in `pipeline/` with a pytest
+  pythonpath shim; the installed package was still the uv hello-world stub.
+- Public API: `derive_minutes`, `assign_positions`, `counting_metrics`,
+  `progression_metrics(threshold=10)`, `build_player_season`. Same definitions
+  as Phase 1 (no key-pass / red-card changes).
+- `uv run pytest -q`: 11 passed. Rebuilt Suárez row matches the cached table
+  (37 np goals, 23.73 npxG, 15 assists, 3273.20 minutes, 71/75/50 progression).
+
+## 2026-08-22 — Phase 1 complete: Suárez pizza from StatsBomb events
+
+- Data-source saga: FBref lost its Opta advanced feed (Jan 2026), removing
+  xG/progression; Understat was blocked by TLS on this network. Pivoted to
+  StatsBomb open event data via statsbombpy. See ADR 0003.
+- Cached La Liga 2015/16: 380/380 matches, 1.29M events → Parquet (140 MB, gitignored).
+- Built player-season table from raw events: minutes derived from period+timestamp
+  + substitutions (validated at 11×match length), modal position, 12 metrics, per-90.
+- Defined progressive passes/carries from coordinates ourselves (10-yd-to-goal
+  rule, def third excluded) — documented in metrics.md. Top-5 progressors
+  (Kroos, Modrić, fullbacks) validated the logic.
+- Percentiles within Forward pool (86 players, ≥900 min). Suárez attacking 95–99th,
+  defending/progression low — correct box-striker shape.
+- Output: outputs/luis_suarez_la_liga_2015_16.png.
+- Known limits to revisit in Phase 2: red-card minutes not deducted (~15 players);
+  key_passes excludes assists (StatsBomb non-overlap).
+- Next: Phase 2 — refactor notebook into `src/soccer_pizza_charts/` modules + pytest.
+
 ## 2026-08-23 — Phase 1: percentiles + pizza
 
 - Peer group: Forwards (CF / LCF / RCF / LW / RW) with ≥ 900 minutes → 86
@@ -24,7 +63,7 @@ Newest entries at the top. This is for your future self — keep it low-effort.
 
 ## 2026-08-22 — Phase 1: player-season aggregates (no percentiles)
 
-- `pipeline/transform.py` reads the event Parquet only (no re-fetch).
+- `src/soccer_pizza_charts/transform.py` reads the event Parquet only (no re-fetch).
 - Minutes from period+timestamp and Substitution on/off; 11×match-length
   invariant holds exactly on sampled matches. Red cards are a known individual-
   minutes overcount (team sum still 11× because we do not clock the dismissed
@@ -53,7 +92,8 @@ Newest entries at the top. This is for your future self — keep it low-effort.
 
 ## 2025-08-20 — Phase 0: scaffold
 
-- Created the repo structure: `pipeline/`, `data/`, `docs/`, `.cursor/rules/`.
+- Created the repo structure: `pipeline/` (later moved to
+  `src/soccer_pizza_charts/`), `data/`, `docs/`, `.cursor/rules/`.
 - Wrote the README, `.gitignore` (Python + Node), and three Cursor project rules
   (project context, python pipeline, frontend).
 - Started the metrics dictionary (`docs/metrics.md`) and two ADRs (record-

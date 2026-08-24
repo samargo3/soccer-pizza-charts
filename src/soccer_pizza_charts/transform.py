@@ -1,7 +1,7 @@
 """Player-season aggregates from cached StatsBomb events.
 
-Domain logic lives here: minutes, modal position, counting stats, per-90.
-See docs/metrics.md. No percentiles.
+Pure transforms take a DataFrame and return a DataFrame. I/O stays at the
+edges (load / save). Definitions: docs/metrics.md. No percentiles.
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parents[2]  # src/soccer_pizza_charts -> repo root
 DATA_DIR = REPO_ROOT / "data"
 EVENTS_PARQUET = DATA_DIR / "events_la_liga_2015_16.parquet"
 PLAYER_SEASON_PARQUET = DATA_DIR / "player_season_la_liga_2015_16.parquet"
@@ -29,7 +29,6 @@ PROGRESSION_METRICS = [
     "successful_dribbles",
 ]
 
-# Columns this stage needs. Confirmed against the 114-col La Liga 2015/16 cache.
 REQUIRED_COLUMNS = [
     "match_id",
     "type",
@@ -87,6 +86,7 @@ def add_elapsed_seconds(events: pd.DataFrame) -> pd.DataFrame:
     first-half stoppage can already be 46–50. Half-time substitutions would be
     undercounted if we used `minute` as a single clock. Timestamp is
     period-relative; we add the first-half Half End length for period 2.
+    See docs/metrics.md (Minutes).
     """
     out = events.copy()
     out["_ts"] = out["timestamp"].map(timestamp_to_seconds)
@@ -114,18 +114,15 @@ def add_elapsed_seconds(events: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def player_match_minutes(events: pd.DataFrame) -> pd.DataFrame:
-    """Minutes played per player per match.
+def derive_minutes(events: pd.DataFrame) -> pd.DataFrame:
+    """Minutes played per player per match. docs/metrics.md (Minutes).
 
-    Starters begin at 0 (anyone who appears in events and is not a
-    substitution_replacement). Replacements begin at the Substitution event
-    clock. Players named as `player` on a Substitution event end there;
-    everyone else ends at the last Half End. Starting XI lineups are not in
-    the cache (tactics was dropped), so unused substitutes who never appear
-    in events are invisible — they played 0 minutes anyway.
+    Starters begin at 0 (anyone in events who is not a substitution_replacement).
+    Replacements begin at the Substitution clock. The `player` on a Substitution
+    event ends there; everyone else ends at the last Half End.
 
-    Red-card early exits are NOT applied: a sent-off player still runs to
-    match end. That slightly inflates team minutes. See docs/metrics.md.
+    Red-card early exits are not applied — a sent-off player still runs to
+    match end.
     """
     timed = add_elapsed_seconds(events)
 
@@ -165,45 +162,25 @@ def player_match_minutes(events: pd.DataFrame) -> pd.DataFrame:
     ]
 
 
-def validate_team_minutes(match_minutes: pd.DataFrame, n_matches: int = 3) -> pd.DataFrame:
-    """Sum of player-minutes per team vs 11 × match length (seconds/60)."""
-    sample_ids = (
-        match_minutes["match_id"].drop_duplicates().head(n_matches).tolist()
-    )
-    sample = match_minutes[match_minutes["match_id"].isin(sample_ids)]
-    match_length = sample.groupby("match_id")["match_end"].first() / 60.0
-    summed = (
-        sample.groupby(["match_id", "team"], as_index=False)["minutes"]
-        .sum()
-        .rename(columns={"minutes": "team_player_minutes"})
-    )
-    summed["match_length_min"] = summed["match_id"].map(match_length)
-    summed["expected_11x"] = 11.0 * summed["match_length_min"]
-    summed["ratio"] = summed["team_player_minutes"] / summed["expected_11x"]
-    return summed.sort_values(["match_id", "team"])
-
-
-def modal_position(events: pd.DataFrame) -> pd.DataFrame:
-    """Each player's most common non-null position across their events."""
+def assign_positions(events: pd.DataFrame) -> pd.DataFrame:
+    """Modal non-null position per player. docs/metrics.md (Position)."""
     pos = events.dropna(subset=["player_id", "position"])
     pos = pos[pos["position"] != "Substitute"]
-    mode = (
+    return (
         pos.groupby(["player_id", "position"], as_index=False)
         .size()
         .sort_values(["player_id", "size", "position"], ascending=[True, False, True])
         .drop_duplicates("player_id")
         [["player_id", "position"]]
     )
-    return mode
 
 
-def player_season_totals(events: pd.DataFrame) -> pd.DataFrame:
-    """Season counting stats per player. Definitions: docs/metrics.md."""
+def counting_metrics(events: pd.DataFrame) -> pd.DataFrame:
+    """Season totals for the stage-1 counting metrics. docs/metrics.md."""
     is_shot = events["type"].eq("Shot")
     is_penalty = events["shot_type"].eq("Penalty")
     is_pass = events["type"].eq("Pass")
-    # Completed pass: StatsBomb leaves pass_outcome null. Incomplete / Out /
-    # Pass Offside / Unknown / Injury Clearance are unsuccessful.
+    # Completed pass: StatsBomb leaves pass_outcome null.
     pass_completed = is_pass & events["pass_outcome"].isna()
 
     flags = pd.DataFrame(
@@ -226,7 +203,7 @@ def player_season_totals(events: pd.DataFrame) -> pd.DataFrame:
             "blocks": events["type"].eq("Block"),
         }
     )
-    totals = (
+    return (
         flags.dropna(subset=["player_id"])
         .groupby("player_id", as_index=False)
         .agg(
@@ -243,23 +220,6 @@ def player_season_totals(events: pd.DataFrame) -> pd.DataFrame:
             blocks=("blocks", "sum"),
         )
     )
-    return totals
-
-
-def add_per90(table: pd.DataFrame) -> pd.DataFrame:
-    """Per-90 rates for counting metrics; pass completion % stays a rate."""
-    out = table.copy()
-    minutes = out["minutes"]
-    for col in COUNT_METRICS:
-        out[f"{col}_per90"] = np.where(
-            minutes > 0, out[col] * 90.0 / minutes, np.nan
-        )
-    out["pass_completion_pct"] = np.where(
-        out["passes_attempted"] > 0,
-        100.0 * out["passes_completed"] / out["passes_attempted"],
-        np.nan,
-    )
-    return out
 
 
 def _xy_columns(series: pd.Series) -> tuple[np.ndarray, np.ndarray]:
@@ -277,25 +237,31 @@ def _xy_columns(series: pd.Series) -> tuple[np.ndarray, np.ndarray]:
     return x, y
 
 
-def is_progressive_action(start: pd.Series, end: pd.Series) -> np.ndarray:
-    """True where the action cuts distance to (120, 40) by ≥ 10 yards and
-    does not start in the defensive third (x < 40). docs/metrics.md.
+def is_progressive_action(
+    start: pd.Series,
+    end: pd.Series,
+    threshold: float = PROGRESSIVE_DISTANCE_YARDS,
+) -> np.ndarray:
+    """True if distance to (120, 40) falls by ≥ threshold yards and start x ≥ 40.
+
+    Project rule, not a StatsBomb flag. docs/metrics.md.
     """
     x0, y0 = _xy_columns(start)
     x1, y1 = _xy_columns(end)
     d0 = np.hypot(GOAL_X - x0, GOAL_Y - y0)
     d1 = np.hypot(GOAL_X - x1, GOAL_Y - y1)
     valid = np.isfinite(d0) & np.isfinite(d1)
-    return valid & (x0 >= DEFENSIVE_THIRD_MAX_X) & (
-        (d0 - d1) >= PROGRESSIVE_DISTANCE_YARDS
-    )
+    return valid & (x0 >= DEFENSIVE_THIRD_MAX_X) & ((d0 - d1) >= threshold)
 
 
-def player_progression_totals(events: pd.DataFrame) -> pd.DataFrame:
+def progression_metrics(
+    events: pd.DataFrame, threshold: float = PROGRESSIVE_DISTANCE_YARDS
+) -> pd.DataFrame:
     """Season progressive-pass, progressive-carry, and completed-dribble counts.
 
-    Passes/carries use the project distance-to-goal rule. Dribbles use
-    dribble_outcome=Complete. docs/metrics.md.
+    Passes/carries use the project distance-to-goal rule with `threshold`
+    (default 10 yards); defensive-third starts (x < 40) are excluded.
+    Dribbles use dribble_outcome=Complete. docs/metrics.md.
     """
     is_completed_pass = events["type"].eq("Pass") & events["pass_outcome"].isna()
     is_carry = events["type"].eq("Carry")
@@ -305,11 +271,13 @@ def player_progression_totals(events: pd.DataFrame) -> pd.DataFrame:
         prog_pass[is_completed_pass.to_numpy()] = is_progressive_action(
             events.loc[is_completed_pass, "location"],
             events.loc[is_completed_pass, "pass_end_location"],
+            threshold=threshold,
         )
     if is_carry.any():
         prog_carry[is_carry.to_numpy()] = is_progressive_action(
             events.loc[is_carry, "location"],
             events.loc[is_carry, "carry_end_location"],
+            threshold=threshold,
         )
     flags = pd.DataFrame(
         {
@@ -327,42 +295,40 @@ def player_progression_totals(events: pd.DataFrame) -> pd.DataFrame:
     )
 
 
-def attach_progression_metrics(
-    events: pd.DataFrame, player_season: pd.DataFrame
-) -> pd.DataFrame:
-    """Join progression totals + per-90 onto an existing player-season table.
-
-    Does not recompute stage-1 metrics. Per-90 uses the table's minutes column.
-    """
-    extra = [c for c in PROGRESSION_METRICS if c in player_season.columns]
-    extra += [f"{c}_per90" for c in PROGRESSION_METRICS if f"{c}_per90" in player_season.columns]
-    base = player_season.drop(columns=extra) if extra else player_season.copy()
-
-    prog = player_progression_totals(events)
-    out = base.merge(prog, on="player_id", how="left")
-    for col in PROGRESSION_METRICS:
-        out[col] = out[col].fillna(0)
+def add_per90(table: pd.DataFrame) -> pd.DataFrame:
+    """Per-90 rates for counting and progression metrics; pass % stays a rate."""
+    out = table.copy()
+    minutes = out["minutes"]
+    rate_cols = [c for c in COUNT_METRICS + PROGRESSION_METRICS if c in out.columns]
+    for col in rate_cols:
         out[f"{col}_per90"] = np.where(
-            out["minutes"] > 0, out[col] * 90.0 / out["minutes"], np.nan
+            minutes > 0, out[col] * 90.0 / minutes, np.nan
+        )
+    if "passes_attempted" in out.columns and "passes_completed" in out.columns:
+        out["pass_completion_pct"] = np.where(
+            out["passes_attempted"] > 0,
+            100.0 * out["passes_completed"] / out["passes_attempted"],
+            np.nan,
         )
     return out
 
 
-def build_player_season_table(events: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Return (player-season table, minutes-validation sample)."""
-    match_minutes = player_match_minutes(events)
-    validation = validate_team_minutes(match_minutes)
+def build_player_season(events: pd.DataFrame) -> pd.DataFrame:
+    """Orchestrate minutes, position, counting, and progression; add per-90.
+
+    Pure function: no file I/O. docs/metrics.md.
+    """
+    match_minutes = derive_minutes(events)
     season_minutes = (
         match_minutes.groupby("player_id", as_index=False)
         .agg(player=("player", "first"), minutes=("minutes", "sum"))
     )
-    totals = player_season_totals(events)
-    positions = modal_position(events)
     table = (
-        season_minutes.merge(positions, on="player_id", how="left")
-        .merge(totals.drop(columns=["player"]), on="player_id", how="left")
+        season_minutes.merge(assign_positions(events), on="player_id", how="left")
+        .merge(counting_metrics(events).drop(columns=["player"]), on="player_id", how="left")
+        .merge(progression_metrics(events), on="player_id", how="left")
     )
-    for col in COUNT_METRICS:
+    for col in COUNT_METRICS + PROGRESSION_METRICS:
         table[col] = table[col].fillna(0)
     table = add_per90(table)
     col_order = (
@@ -370,11 +336,14 @@ def build_player_season_table(events: pd.DataFrame) -> tuple[pd.DataFrame, pd.Da
         + COUNT_METRICS
         + ["pass_completion_pct"]
         + [f"{c}_per90" for c in COUNT_METRICS]
+        + PROGRESSION_METRICS
+        + [f"{c}_per90" for c in PROGRESSION_METRICS]
     )
-    return table[col_order], validation
+    return table[col_order]
 
 
 def load_events(path: Path = EVENTS_PARQUET) -> pd.DataFrame:
+    """I/O edge: read the cached events Parquet."""
     import pyarrow.parquet as pq
 
     schema_names = pq.read_schema(path).names
@@ -384,79 +353,13 @@ def load_events(path: Path = EVENTS_PARQUET) -> pd.DataFrame:
     return pd.read_parquet(path)
 
 
-def confirm_columns(events: pd.DataFrame) -> None:
-    """Print the exact flags this stage uses. Run before aggregating."""
-    print("=== column confirmation ===")
-    for col in REQUIRED_COLUMNS:
-        print(f"  {col}: present, dtype={events[col].dtype}")
-    print("shot_outcome values:", sorted(events["shot_outcome"].dropna().unique().tolist()))
-    print("shot_type values:", sorted(events["shot_type"].dropna().unique().tolist()))
-    print("pass_outcome values:", sorted(events["pass_outcome"].dropna().unique().tolist()))
-    print("duel_type values:", sorted(events["duel_type"].dropna().unique().tolist()))
-    print("duel_outcome values:", sorted(events["duel_outcome"].dropna().unique().tolist()))
-    print(
-        "interception_outcome values:",
-        sorted(events["interception_outcome"].dropna().unique().tolist()),
-    )
-    print(
-        "pass_goal_assist unique:",
-        events["pass_goal_assist"].value_counts(dropna=False).to_dict(),
-    )
-    print(
-        "pass_shot_assist unique:",
-        events["pass_shot_assist"].value_counts(dropna=False).to_dict(),
-    )
-    sxi = events[events["type"] == "Starting XI"]
-    print(
-        "Starting XI rows:",
-        len(sxi),
-        "player non-null:",
-        int(sxi["player"].notna().sum()),
-        "(lineups lived in dropped tactics column)",
-    )
-
-
 def main() -> None:
-    """Stage 2: attach progression columns onto the existing player-season table."""
-    if not PLAYER_SEASON_PARQUET.exists():
-        raise FileNotFoundError(
-            f"Stage-1 table missing: {PLAYER_SEASON_PARQUET}. Run stage 1 first."
-        )
+    """Rebuild the player-season Parquet from the cached events file."""
     events = load_events()
-    for col in ("location", "pass_end_location", "carry_end_location", "dribble_outcome"):
-        if col not in events.columns:
-            raise KeyError(f"Cached events missing {col}")
-    table = pd.read_parquet(PLAYER_SEASON_PARQUET)
-    stage1_cols = [
-        c
-        for c in table.columns
-        if c not in PROGRESSION_METRICS
-        and not any(c == f"{m}_per90" for m in PROGRESSION_METRICS)
-    ]
-    out = attach_progression_metrics(events, table[stage1_cols])
-    out.to_parquet(PLAYER_SEASON_PARQUET, engine="pyarrow", index=False)
-
-    suarez = out[out["player"] == "Luis Alberto Suárez Díaz"]
-    print("=== Luis Alberto Suárez Díaz (progression) ===")
-    cols = (
-        ["player", "position", "minutes"]
-        + PROGRESSION_METRICS
-        + [f"{c}_per90" for c in PROGRESSION_METRICS]
-    )
-    print(suarez[cols].iloc[0].to_string())
-
-    qualified = out[out["minutes"] >= 900].sort_values(
-        "progressive_passes_per90", ascending=False
-    )
-    print("\n=== top 5 progressive_passes_per90 (min 900 minutes) ===")
-    print(
-        qualified[
-            ["player", "position", "minutes", "progressive_passes", "progressive_passes_per90"]
-        ]
-        .head(5)
-        .to_string(index=False)
-    )
-    print("\ntable shape:", out.shape)
+    table = build_player_season(events)
+    PLAYER_SEASON_PARQUET.parent.mkdir(parents=True, exist_ok=True)
+    table.to_parquet(PLAYER_SEASON_PARQUET, engine="pyarrow", index=False)
+    print("table shape:", table.shape)
     print("wrote", PLAYER_SEASON_PARQUET)
 
 

@@ -2,13 +2,13 @@
 
 import pandas as pd
 
-from pipeline.transform import (
+from soccer_pizza_charts.transform import (
     TACKLE_WON_OUTCOMES,
     add_per90,
-    attach_progression_metrics,
+    counting_metrics,
+    derive_minutes,
     is_progressive_action,
-    player_match_minutes,
-    player_season_totals,
+    progression_metrics,
 )
 
 
@@ -45,11 +45,10 @@ def _event(**kwargs: object) -> dict:
     return row
 
 
-def test_minutes_ht_sub_and_11x_invariant() -> None:
-    """11 starters, one HT sub. First half 45:00, second half 45:00 → 90 min match.
+def _one_match_with_ht_sub() -> pd.DataFrame:
+    """11 Home starters, P11 off at HT, P12 on. Each half is 45:00 → 90 min.
 
-    Starter 11 plays 45, replacement 12 plays 45, others play 90.
-    Team minutes = 11 × 90.
+    Paper minutes: P1–P10 = 90, P11 = 45, P12 = 45. Team sum = 11 × 90.
     """
     rows = [
         _event(type="Half End", period=1, timestamp="00:45:00.000", minute=45),
@@ -87,19 +86,52 @@ def test_minutes_ht_sub_and_11x_invariant() -> None:
             timestamp="00:01:00.000",
         )
     )
-    minutes = player_match_minutes(pd.DataFrame(rows))
-    by_id = minutes.set_index("player_id")["minutes"]
-    assert by_id.loc[11.0] == 45.0
-    assert by_id.loc[12.0] == 45.0
-    assert by_id.loc[1.0] == 90.0
-    team_sum = minutes["minutes"].sum()
-    assert abs(team_sum - 11 * 90.0) < 1e-6
+    return pd.DataFrame(rows)
+
+
+def test_derive_minutes_exact_values() -> None:
+    minutes = derive_minutes(_one_match_with_ht_sub()).set_index("player_id")["minutes"]
+    assert minutes.loc[1.0] == 90.0
+    assert minutes.loc[11.0] == 45.0
+    assert minutes.loc[12.0] == 45.0
+
+
+def test_team_minutes_equal_11_times_match_length() -> None:
+    minutes = derive_minutes(_one_match_with_ht_sub())
+    match_length_min = minutes["match_end"].iloc[0] / 60.0
+    assert match_length_min == 90.0
+    team_sum = minutes.loc[minutes["team"] == "Home", "minutes"].sum()
+    assert abs(team_sum - 11 * match_length_min) < 1e-6
+
+
+def test_progression_forward_pass_counts_backward_does_not() -> None:
+    events = pd.DataFrame(
+        [
+            _event(
+                type="Pass",
+                player="A",
+                player_id=1.0,
+                location=[50.0, 40.0],
+                pass_end_location=[70.0, 40.0],
+                pass_outcome=None,
+            ),
+            _event(
+                type="Pass",
+                player="B",
+                player_id=2.0,
+                location=[70.0, 40.0],
+                pass_end_location=[50.0, 40.0],
+                pass_outcome=None,
+            ),
+        ]
+    )
+    prog = progression_metrics(events, threshold=10).set_index("player_id")
+    assert prog.loc[1.0, "progressive_passes"] == 1
+    assert prog.loc[2.0, "progressive_passes"] == 0
 
 
 def test_np_goals_exclude_penalties_and_pass_completion() -> None:
     rows = [
-        _event(type="Half End", period=1, timestamp="00:45:00.000"),
-        _event(type="Half End", period=2, timestamp="00:45:00.000"),
         _event(
             type="Shot",
             player="A",
@@ -116,18 +148,8 @@ def test_np_goals_exclude_penalties_and_pass_completion() -> None:
             shot_type="Penalty",
             shot_statsbomb_xg=0.76,
         ),
-        _event(
-            type="Pass",
-            player="A",
-            player_id=1.0,
-            pass_outcome=None,
-        ),
-        _event(
-            type="Pass",
-            player="A",
-            player_id=1.0,
-            pass_outcome="Incomplete",
-        ),
+        _event(type="Pass", player="A", player_id=1.0, pass_outcome=None),
+        _event(type="Pass", player="A", player_id=1.0, pass_outcome="Incomplete"),
         _event(
             type="Duel",
             player="A",
@@ -143,8 +165,7 @@ def test_np_goals_exclude_penalties_and_pass_completion() -> None:
             duel_outcome="Lost In Play",
         ),
     ]
-    events = pd.DataFrame(rows)
-    totals = player_season_totals(events).set_index("player_id").loc[1.0]
+    totals = counting_metrics(pd.DataFrame(rows)).set_index("player_id").loc[1.0]
     assert totals["np_goals"] == 1
     assert totals["shots"] == 2
     assert abs(totals["npxg"] - 0.4) < 1e-9
@@ -176,66 +197,8 @@ def test_per90_and_pass_pct_not_per90() -> None:
     assert "pass_completion_pct_per90" not in out.columns
 
 
-def test_progressive_distance_rule() -> None:
-    """10-yard cut toward (120, 40); starts in the defensive third never count."""
+def test_progressive_distance_rule_defensive_third() -> None:
     starts = pd.Series([[50.0, 40.0], [50.0, 40.0], [20.0, 40.0], [50.0, 40.0]])
     ends = pd.Series([[70.0, 40.0], [55.0, 40.0], [100.0, 40.0], [60.0, 40.0]])
-    got = is_progressive_action(starts, ends)
+    got = is_progressive_action(starts, ends, threshold=10)
     assert list(got) == [True, False, False, True]
-
-
-def test_progression_join_does_not_change_stage1_totals() -> None:
-    events = pd.DataFrame(
-        [
-            _event(
-                type="Pass",
-                player="A",
-                player_id=1.0,
-                location=[50.0, 40.0],
-                pass_end_location=[70.0, 40.0],
-                pass_outcome=None,
-            ),
-            _event(
-                type="Pass",
-                player="A",
-                player_id=1.0,
-                location=[50.0, 40.0],
-                pass_end_location=[70.0, 40.0],
-                pass_outcome="Incomplete",
-            ),
-            _event(
-                type="Carry",
-                player="A",
-                player_id=1.0,
-                location=[50.0, 40.0],
-                carry_end_location=[70.0, 40.0],
-            ),
-            _event(
-                type="Dribble",
-                player="A",
-                player_id=1.0,
-                dribble_outcome="Complete",
-            ),
-            _event(
-                type="Dribble",
-                player="A",
-                player_id=1.0,
-                dribble_outcome="Incomplete",
-            ),
-        ]
-    )
-    stage1 = pd.DataFrame(
-        {
-            "player": ["A"],
-            "player_id": [1.0],
-            "position": ["Center Forward"],
-            "minutes": [90.0],
-            "np_goals": [37],
-        }
-    )
-    out = attach_progression_metrics(events, stage1)
-    assert out.loc[0, "np_goals"] == 37
-    assert out.loc[0, "progressive_passes"] == 1
-    assert out.loc[0, "progressive_carries"] == 1
-    assert out.loc[0, "successful_dribbles"] == 1
-    assert out.loc[0, "progressive_passes_per90"] == 1.0

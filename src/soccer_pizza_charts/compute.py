@@ -15,7 +15,7 @@ import pandas as pd
 from matplotlib.patches import Patch
 from mplsoccer import PyPizza
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parents[2]  # src/soccer_pizza_charts -> repo root
 DATA_DIR = REPO_ROOT / "data"
 PLAYER_SEASON_PARQUET = DATA_DIR / "player_season_la_liga_2015_16.parquet"
 OUTPUTS_DIR = REPO_ROOT / "outputs"
