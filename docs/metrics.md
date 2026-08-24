@@ -50,13 +50,17 @@ Minutes are not a StatsBomb column. Per match:
 - Players listed as `substitution_replacement` begin at that Substitution
   event's elapsed time.
 - Players listed as `player` on a Substitution event (coming off) end there.
+- A sending-off ends the interval at the card's elapsed time. StatsBomb stores
+  this as `foul_committed_card` (on `Foul Committed`) or `bad_behaviour_card`
+  (on `Bad Behaviour`). Values that count: **Red Card**, **Second Yellow**.
+  A lone Yellow Card does not. If both a sub-off and a sending-off exist, the
+  earlier clock wins.
 - Everyone else ends at the last **Half End** of the match.
 - Season minutes = sum across matches.
 
-**Known inaccuracy:** red cards / second yellows (`foul_committed_card`,
-`bad_behaviour_card`) are not used as an off-time. A sent-off player is still
-counted until match end, so that team's player-minutes run slightly above
-11 × match length.
+With sending-offs applied, that team's player-minutes for the match sit **below**
+11 × match length by the dismissed player's remaining time. Matches with no
+sending-off still sum to 11 × length.
 
 ## Metric table
 

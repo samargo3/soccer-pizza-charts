@@ -36,6 +36,8 @@ def _event(**kwargs: object) -> dict:
         "interception_outcome": None,
         "substitution_replacement": None,
         "substitution_replacement_id": None,
+        "foul_committed_card": None,
+        "bad_behaviour_card": None,
         "location": None,
         "pass_end_location": None,
         "carry_end_location": None,
@@ -102,6 +104,72 @@ def test_team_minutes_equal_11_times_match_length() -> None:
     assert match_length_min == 90.0
     team_sum = minutes.loc[minutes["team"] == "Home", "minutes"].sum()
     assert abs(team_sum - 11 * match_length_min) < 1e-6
+
+
+def test_red_card_ends_minutes_and_team_sum_below_11x() -> None:
+    """Sending-off ends that player's interval. docs/metrics.md (Minutes).
+
+    11 starters, 90-minute match, P1 red-carded at 30:00. P1 = 30 minutes.
+    Team sum is 60 minutes below 11 × 90 (the dismissed remainder is gone).
+    A Yellow Card does not end anyone's interval.
+    """
+    rows = [
+        _event(type="Half End", period=1, timestamp="00:45:00.000", minute=45),
+        _event(type="Half End", period=2, timestamp="00:45:00.000", minute=90),
+    ]
+    for i in range(1, 12):
+        rows.append(
+            _event(
+                type="Pass",
+                player=f"P{i}",
+                player_id=float(i),
+                timestamp="00:01:00.000",
+                minute=1,
+            )
+        )
+    rows.append(
+        _event(
+            type="Foul Committed",
+            player="P1",
+            player_id=1.0,
+            foul_committed_card="Red Card",
+            period=1,
+            timestamp="00:30:00.000",
+            minute=30,
+        )
+    )
+    rows.append(
+        _event(
+            type="Foul Committed",
+            player="P2",
+            player_id=2.0,
+            foul_committed_card="Yellow Card",
+            period=1,
+            timestamp="00:20:00.000",
+            minute=20,
+        )
+    )
+    rows.append(
+        _event(
+            type="Bad Behaviour",
+            player="P3",
+            player_id=3.0,
+            bad_behaviour_card="Second Yellow",
+            period=2,
+            timestamp="00:10:00.000",
+            minute=55,
+        )
+    )
+    minutes = derive_minutes(pd.DataFrame(rows)).set_index("player_id")
+    assert minutes.loc[1.0, "minutes"] == 30.0
+    assert minutes.loc[2.0, "minutes"] == 90.0  # yellow only
+    assert minutes.loc[3.0, "minutes"] == 55.0  # 45 + 10
+    match_length_min = minutes["match_end"].iloc[0] / 60.0
+    assert match_length_min == 90.0
+    team_sum = minutes.loc[minutes["team"] == "Home", "minutes"].sum()
+    # P1 missing 60, P3 missing 35 → 95 below 11 × 90.
+    assert team_sum < 11 * match_length_min
+    assert abs(team_sum - (11 * match_length_min - 95.0)) < 1e-6
 
 
 def test_progression_forward_pass_counts_backward_does_not() -> None:

@@ -5,6 +5,13 @@ Newest entries at the top. This is for your future self — keep it low-effort.
 
 ---
 
+## 2026-08-24 — Phase 2 step 3B: deduct red-card minutes
+
+- Sending-off (`Red Card` or `Second Yellow` on `foul_committed_card` or
+  `bad_behaviour_card`) now ends that player's interval. Yellow cards do not.
+  Team minutes on a sending-off match sit below 11 × length. Suárez unchanged.
+  See `docs/metrics.md`.
+
 ## 2026-08-24 — Phase 2 step 3A: key passes include assists
 
 - `key_passes` is now `pass_shot_assist` OR `pass_goal_assist`. StatsBomb

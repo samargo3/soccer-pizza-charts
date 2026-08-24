@@ -52,12 +52,18 @@ REQUIRED_COLUMNS = [
     "interception_outcome",
     "substitution_replacement",
     "substitution_replacement_id",
+    "foul_committed_card",
+    "bad_behaviour_card",
 ]
 
 # StatsBomb tackle duels: "Won" plus the two Success* outcomes are successful
 # tackles; Lost In Play / Lost Out are not. Aerial Lost is a separate duel_type
 # with no outcome (not a tackle). See docs/metrics.md.
 TACKLE_WON_OUTCOMES = ("Won", "Success In Play", "Success Out")
+
+# Sending-off: straight red or second yellow, on either card column.
+# Yellow Card alone does not end the interval. docs/metrics.md (Minutes).
+SENDING_OFF_CARDS = ("Red Card", "Second Yellow")
 
 COUNT_METRICS = [
     "np_goals",
@@ -119,10 +125,9 @@ def derive_minutes(events: pd.DataFrame) -> pd.DataFrame:
 
     Starters begin at 0 (anyone in events who is not a substitution_replacement).
     Replacements begin at the Substitution clock. The `player` on a Substitution
-    event ends there; everyone else ends at the last Half End.
-
-    Red-card early exits are not applied — a sent-off player still runs to
-    match end.
+    event ends there. A sending-off (Red Card or Second Yellow on
+    foul_committed_card or bad_behaviour_card) also ends the interval, at the
+    card's elapsed time. Everyone else ends at the last Half End.
     """
     timed = add_elapsed_seconds(events)
 
@@ -149,11 +154,23 @@ def derive_minutes(events: pd.DataFrame) -> pd.DataFrame:
         .groupby(["match_id", "player_id"], as_index=False)
         .agg(off_elapsed=("_elapsed", "min"))
     )
+    sent_off = timed["foul_committed_card"].isin(SENDING_OFF_CARDS) | timed[
+        "bad_behaviour_card"
+    ].isin(SENDING_OFF_CARDS)
+    card_off = (
+        timed.loc[sent_off]
+        .dropna(subset=["player_id"])
+        .groupby(["match_id", "player_id"], as_index=False)
+        .agg(card_off_elapsed=("_elapsed", "min"))
+    )
 
     minutes = appearances.merge(on_times, on=["match_id", "player_id"], how="left")
     minutes = minutes.merge(off_times, on=["match_id", "player_id"], how="left")
+    minutes = minutes.merge(card_off, on=["match_id", "player_id"], how="left")
     minutes["on_elapsed"] = minutes["on_elapsed"].fillna(0.0)
     minutes["off_elapsed"] = minutes["off_elapsed"].fillna(minutes["match_end"])
+    # Earlier of sub-off and sending-off; NaN card times are ignored by min.
+    minutes["off_elapsed"] = minutes[["off_elapsed", "card_off_elapsed"]].min(axis=1)
     minutes["minutes"] = (
         (minutes["off_elapsed"] - minutes["on_elapsed"]).clip(lower=0.0) / 60.0
     )
