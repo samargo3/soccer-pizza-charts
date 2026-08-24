@@ -175,6 +175,25 @@ def test_np_goals_exclude_penalties_and_pass_completion() -> None:
     assert "Lost In Play" not in TACKLE_WON_OUTCOMES
 
 
+def test_key_passes_include_goal_assists() -> None:
+    """Key pass = shot-assist OR goal-assist. docs/metrics.md.
+
+    StatsBomb does not set both flags on one pass, so a goal-assist would
+    be missing from a shot-assist-only count.
+    """
+    rows = [
+        _event(type="Pass", player="A", player_id=1.0, pass_shot_assist=True),
+        _event(type="Pass", player="A", player_id=1.0, pass_goal_assist=True),
+        _event(type="Pass", player="A", player_id=1.0),
+        _event(type="Pass", player="B", player_id=2.0, pass_goal_assist=True),
+    ]
+    totals = counting_metrics(pd.DataFrame(rows)).set_index("player_id")
+    assert totals.loc[1.0, "key_passes"] == 2
+    assert totals.loc[1.0, "assists"] == 1
+    assert totals.loc[2.0, "key_passes"] == 1
+    assert totals.loc[2.0, "assists"] == 1
+
+
 def test_per90_and_pass_pct_not_per90() -> None:
     table = pd.DataFrame(
         {

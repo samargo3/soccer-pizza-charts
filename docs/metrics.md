@@ -66,7 +66,7 @@ counted until match end, so that team's player-minutes run slightly above
 | npxG | Attacking | Yes | `shot_statsbomb_xg` on non-penalty shots | Sum of StatsBomb xG excluding penalties | Includes blocked / off-target shots; excludes `shot_type=Penalty` |
 | Shots | Attacking | Yes | `type=Shot` | All shots, including penalties | |
 | Assists | Attacking | Yes | `pass_goal_assist=True` | Passes tagged as the goal assist | Flag is True vs null, not True/False. Disjoint from `pass_shot_assist` in this dump |
-| Key passes | Attacking | Yes | `pass_shot_assist=True` | Passes that assisted a shot but not a goal | Not a superset of assists here — the two flags do not overlap |
+| Key passes | Attacking | Yes | `pass_shot_assist=True` **or** `pass_goal_assist=True` | Passes that created a shot, including those that became goals | StatsBomb tags the two flags mutually exclusively, so a conventional key pass is the **union**. Assist count is unchanged (still goal-assists only). |
 | Passes attempted | Possession | Yes | `type=Pass` | All pass events | |
 | Passes completed | Possession | Yes | `type=Pass` and `pass_outcome` null | Completed passes | StatsBomb leaves `pass_outcome` null on a successful pass. Unsuccessful: Incomplete, Out, Pass Offside, Unknown, Injury Clearance |
 | Pass completion % | Possession | No | completed / attempted | Already a rate — do not per-90 | |
@@ -145,5 +145,4 @@ midfielders. Unmapped / null positions are excluded from every pool.
 ## Open questions
 
 - How to handle players who changed position mid-season? (currently: modal)
-- Should key passes include assists? In this feed the flags are disjoint.
 - Finer peer groups (striker vs winger) if the Forward pool feels mixed.

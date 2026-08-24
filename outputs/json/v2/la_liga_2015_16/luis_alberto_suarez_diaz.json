@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-08-24T22:47:29.075258+00:00",
+  "generated_at": "2026-08-24T23:00:09.106102+00:00",
   "data_source": {
     "provider": "StatsBomb open data",
     "library": "statsbombpy",
@@ -76,8 +76,8 @@
       "metric": "key_passes_per90",
       "label": "Key passes",
       "category": "Attacking",
-      "value_per90": 1.237320192171407,
-      "percentile": 66.27906976744185,
+      "value_per90": 1.6497602562285427,
+      "percentile": 81.3953488372093,
       "higher_is_better": true
     },
     {

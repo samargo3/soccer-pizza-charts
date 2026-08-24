@@ -193,7 +193,11 @@ def counting_metrics(events: pd.DataFrame) -> pd.DataFrame:
             "npxg": np.where(is_shot & ~is_penalty, events["shot_statsbomb_xg"], 0.0),
             "shots": is_shot,
             "assists": events["pass_goal_assist"].eq(True),
-            "key_passes": events["pass_shot_assist"].eq(True),
+            # Conventional key pass = shot-creating pass. StatsBomb splits
+            # these into pass_shot_assist (shot, no goal) vs pass_goal_assist
+            # (goal); the flags do not overlap. Union them. docs/metrics.md.
+            "key_passes": events["pass_shot_assist"].eq(True)
+            | events["pass_goal_assist"].eq(True),
             "passes_attempted": is_pass,
             "passes_completed": pass_completed,
             "tackles_won": events["type"].eq("Duel")

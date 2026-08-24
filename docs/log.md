@@ -5,6 +5,12 @@ Newest entries at the top. This is for your future self — keep it low-effort.
 
 ---
 
+## 2026-08-24 — Phase 2 step 3A: key passes include assists
+
+- `key_passes` is now `pass_shot_assist` OR `pass_goal_assist`. StatsBomb
+  tags them exclusively; the union is the conventional key-pass definition.
+  Assists stay goal-assists only. See `docs/metrics.md`.
+
 ## 2026-08-24 — Phase 2 step 2b: JSON schema_version 2
 
 - Metadata only: `higher_is_better` on each metric, top-level `categories`
