@@ -54,6 +54,7 @@ soccerdata             compute (percentiles)           JSON            pizza cha
 │   ├── log.md             Running dev log
 │   └── adr/               Architecture Decision Records (the "why")
 ├── src/soccer_pizza_charts/   Installed package: ingest / transform / compute
+├── web/                   Vite + React + TypeScript UI (Phase 3)
 └── data/                  Local data cache — NOT committed to git
 ```
 

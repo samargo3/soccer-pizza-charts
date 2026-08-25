@@ -1,0 +1,152 @@
+{
+  "schema_version": 3,
+  "generated_at": "2026-08-25T16:08:40.970449+00:00",
+  "data_source": {
+    "provider": "StatsBomb open data",
+    "library": "statsbombpy",
+    "version": "1.22.0"
+  },
+  "player": {
+    "name": "Álvaro Negredo Sánchez",
+    "position": "Center Forward",
+    "position_group": "Forward",
+    "minutes": 1232.7231666666667
+  },
+  "competition": {
+    "league": "La Liga",
+    "season": "2015/16"
+  },
+  "peer_group": {
+    "position_group": "Forward",
+    "min_minutes": 900,
+    "n_players": 86,
+    "description": "Forwards with at least 900 minutes, La Liga 2015/16"
+  },
+  "categories": [
+    {
+      "key": "attacking",
+      "label": "Attacking",
+      "color": "#FF4D5E"
+    },
+    {
+      "key": "possession_progression",
+      "label": "Possession / Progression",
+      "color": "#22D3A6"
+    },
+    {
+      "key": "defending",
+      "label": "Defending",
+      "color": "#4C9AFF"
+    }
+  ],
+  "metrics": [
+    {
+      "metric": "np_goals_per90",
+      "label": "NP goals",
+      "category": "Attacking",
+      "category_key": "attacking",
+      "value_per90": 0.3650454637084644,
+      "percentile": 67.44186046511628,
+      "higher_is_better": true
+    },
+    {
+      "metric": "npxg_per90",
+      "label": "npxG",
+      "category": "Attacking",
+      "category_key": "attacking",
+      "value_per90": 0.4317486982492284,
+      "percentile": 84.88372093023256,
+      "higher_is_better": true
+    },
+    {
+      "metric": "shots_per90",
+      "label": "Shots",
+      "category": "Attacking",
+      "category_key": "attacking",
+      "value_per90": 2.8473546169260224,
+      "percentile": 80.23255813953489,
+      "higher_is_better": true
+    },
+    {
+      "metric": "assists_per90",
+      "label": "Assists",
+      "category": "Attacking",
+      "category_key": "attacking",
+      "value_per90": 0.14601818548338577,
+      "percentile": 53.48837209302325,
+      "higher_is_better": true
+    },
+    {
+      "metric": "key_passes_per90",
+      "label": "Key passes",
+      "category": "Attacking",
+      "category_key": "attacking",
+      "value_per90": 1.0221272983837004,
+      "percentile": 41.86046511627907,
+      "higher_is_better": true
+    },
+    {
+      "metric": "pass_completion_pct",
+      "label": "Pass %",
+      "category": "Possession / Progression",
+      "category_key": "possession_progression",
+      "value_per90": 65.26610644257703,
+      "percentile": 26.744186046511626,
+      "higher_is_better": true
+    },
+    {
+      "metric": "progressive_passes_per90",
+      "label": "Prog. passes",
+      "category": "Possession / Progression",
+      "category_key": "possession_progression",
+      "value_per90": 1.8982364112840149,
+      "percentile": 37.2093023255814,
+      "higher_is_better": true
+    },
+    {
+      "metric": "progressive_carries_per90",
+      "label": "Prog. carries",
+      "category": "Possession / Progression",
+      "category_key": "possession_progression",
+      "value_per90": 1.0951363911253933,
+      "percentile": 9.30232558139535,
+      "higher_is_better": true
+    },
+    {
+      "metric": "successful_dribbles_per90",
+      "label": "Succ. dribbles",
+      "category": "Possession / Progression",
+      "category_key": "possession_progression",
+      "value_per90": 0.9491182056420074,
+      "percentile": 29.069767441860467,
+      "higher_is_better": true
+    },
+    {
+      "metric": "tackles_won_per90",
+      "label": "Tackles won",
+      "category": "Defending",
+      "category_key": "defending",
+      "value_per90": 0.29203637096677154,
+      "percentile": 13.953488372093023,
+      "higher_is_better": true
+    },
+    {
+      "metric": "interceptions_per90",
+      "label": "Interceptions",
+      "category": "Defending",
+      "category_key": "defending",
+      "value_per90": 0.21902727822507864,
+      "percentile": 6.976744186046512,
+      "higher_is_better": true
+    },
+    {
+      "metric": "blocks_per90",
+      "label": "Blocks",
+      "category": "Defending",
+      "category_key": "defending",
+      "value_per90": 1.0221272983837004,
+      "percentile": 25.581395348837212,
+      "higher_is_better": true
+    }
+  ]
+}

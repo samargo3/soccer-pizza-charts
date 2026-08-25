@@ -1,0 +1,525 @@
+{
+  "schema_version": 3,
+  "competition": {
+    "league": "La Liga",
+    "season": "2015/16"
+  },
+  "players": [
+    {
+      "name": "Adalberto Peñaranda Maestre",
+      "slug": "adalberto_penaranda_maestre",
+      "position": "Right Center Forward",
+      "minutes": 1736.72395
+    },
+    {
+      "name": "Adrián Embarba Blázquez",
+      "slug": "adrian_embarba_blazquez",
+      "position": "Right Wing",
+      "minutes": 1919.1679666666666
+    },
+    {
+      "name": "Alberto Mateus Contreiras Gonçalves",
+      "slug": "alberto_mateus_contreiras_goncalves",
+      "position": "Center Forward",
+      "minutes": 1037.17605
+    },
+    {
+      "name": "Alejandro Menéndez Díez",
+      "slug": "alejandro_menendez_diez",
+      "position": "Left Wing",
+      "minutes": 1103.7978
+    },
+    {
+      "name": "Antoine Griezmann",
+      "slug": "antoine_griezmann",
+      "position": "Right Center Forward",
+      "minutes": 3150.3292
+    },
+    {
+      "name": "Aritz Aduriz Zubeldia",
+      "slug": "aritz_aduriz_zubeldia",
+      "position": "Center Forward",
+      "minutes": 2902.1358666666665
+    },
+    {
+      "name": "Armindo Tué Na Bangna",
+      "slug": "armindo_tue_na_bangna",
+      "position": "Left Wing",
+      "minutes": 1535.8337000000001
+    },
+    {
+      "name": "Arnaldo Antonio Sanabria Ayala",
+      "slug": "arnaldo_antonio_sanabria_ayala",
+      "position": "Center Forward",
+      "minutes": 2325.2604166666665
+    },
+    {
+      "name": "Borja González Tomás",
+      "slug": "borja_gonzalez_tomas",
+      "position": "Center Forward",
+      "minutes": 2674.8456333333334
+    },
+    {
+      "name": "Carlos Alberto Vela Garrido",
+      "slug": "carlos_alberto_vela_garrido",
+      "position": "Right Wing",
+      "minutes": 2851.938016666667
+    },
+    {
+      "name": "Carlos Carmona Bonet",
+      "slug": "carlos_carmona_bonet",
+      "position": "Right Wing",
+      "minutes": 1253.5292166666668
+    },
+    {
+      "name": "Carlos Castro García",
+      "slug": "carlos_castro_garcia",
+      "position": "Center Forward",
+      "minutes": 1081.4840833333333
+    },
+    {
+      "name": "Charles Días Barbosa de Oliveira",
+      "slug": "charles_dias_barbosa_de_oliveira",
+      "position": "Left Center Forward",
+      "minutes": 3137.4289833333332
+    },
+    {
+      "name": "Cristiano Ronaldo dos Santos Aveiro",
+      "slug": "cristiano_ronaldo_dos_santos_aveiro",
+      "position": "Left Wing",
+      "minutes": 3308.513
+    },
+    {
+      "name": "Cédric Bakambu",
+      "slug": "cedric_bakambu",
+      "position": "Right Center Forward",
+      "minutes": 1946.6107
+    },
+    {
+      "name": "David Zurutuza Veillet",
+      "slug": "david_zurutuza_veillet",
+      "position": "Left Wing",
+      "minutes": 1160.4120333333333
+    },
+    {
+      "name": "Deyverson Brum Silva Acosta",
+      "slug": "deyverson_brum_silva_acosta",
+      "position": "Right Center Forward",
+      "minutes": 2254.5703
+    },
+    {
+      "name": "Duje Čop",
+      "slug": "duje_cop",
+      "position": "Right Center Forward",
+      "minutes": 2106.850933333333
+    },
+    {
+      "name": "Fabián Ariel Orellana Valenzuela",
+      "slug": "fabian_ariel_orellana_valenzuela",
+      "position": "Right Wing",
+      "minutes": 3123.68035
+    },
+    {
+      "name": "Fayçal Fajr",
+      "slug": "faycal_fajr",
+      "position": "Right Wing",
+      "minutes": 2969.47375
+    },
+    {
+      "name": "Federico Nicolás Cartabia",
+      "slug": "federico_nicolas_cartabia",
+      "position": "Right Wing",
+      "minutes": 1405.9167833333333
+    },
+    {
+      "name": "Felipe Salvador Caicedo Corozo",
+      "slug": "felipe_salvador_caicedo_corozo",
+      "position": "Center Forward",
+      "minutes": 2217.3631333333333
+    },
+    {
+      "name": "Fernando José Torres Sanz",
+      "slug": "fernando_jose_torres_sanz",
+      "position": "Left Center Forward",
+      "minutes": 1771.2357166666666
+    },
+    {
+      "name": "Fernando Llorente Torres",
+      "slug": "fernando_llorente_torres",
+      "position": "Center Forward",
+      "minutes": 1204.43555
+    },
+    {
+      "name": "Francisco Alcácer García",
+      "slug": "francisco_alcacer_garcia",
+      "position": "Center Forward",
+      "minutes": 2538.7442
+    },
+    {
+      "name": "Gareth Frank Bale",
+      "slug": "gareth_frank_bale",
+      "position": "Right Wing",
+      "minutes": 1794.2409833333334
+    },
+    {
+      "name": "Gerard Moreno Balaguero",
+      "slug": "gerard_moreno_balaguero",
+      "position": "Center Forward",
+      "minutes": 2000.9309
+    },
+    {
+      "name": "Giuseppe Rossi",
+      "slug": "giuseppe_rossi",
+      "position": "Left Center Forward",
+      "minutes": 1187.6963
+    },
+    {
+      "name": "Hernán Arsenio Pérez González",
+      "slug": "hernan_arsenio_perez_gonzalez",
+      "position": "Right Wing",
+      "minutes": 2552.36175
+    },
+    {
+      "name": "Iago Aspas Juncal",
+      "slug": "iago_aspas_juncal",
+      "position": "Center Forward",
+      "minutes": 2760.6803
+    },
+    {
+      "name": "Iker Muniain Goñi",
+      "slug": "iker_muniain_goni",
+      "position": "Left Wing",
+      "minutes": 1064.7135166666667
+    },
+    {
+      "name": "Imanol Agirretxe Arruti",
+      "slug": "imanol_agirretxe_arruti",
+      "position": "Center Forward",
+      "minutes": 1216.22775
+    },
+    {
+      "name": "Isaac Ajayi Success",
+      "slug": "isaac_ajayi_success",
+      "position": "Right Wing",
+      "minutes": 2514.631933333333
+    },
+    {
+      "name": "Iñaki Williams Arthuer",
+      "slug": "inaki_williams_arthuer",
+      "position": "Right Wing",
+      "minutes": 1666.2435833333334
+    },
+    {
+      "name": "Javier Guerra Rodríguez",
+      "slug": "javier_guerra_rodriguez",
+      "position": "Center Forward",
+      "minutes": 2176.506283333333
+    },
+    {
+      "name": "John Guidetti",
+      "slug": "john_guidetti",
+      "position": "Center Forward",
+      "minutes": 1338.4167333333335
+    },
+    {
+      "name": "Jonathan Rodríguez Menéndez",
+      "slug": "jonathan_rodriguez_menendez",
+      "position": "Left Wing",
+      "minutes": 2973.9511833333336
+    },
+    {
+      "name": "Jonathan Viera Ramos",
+      "slug": "jonathan_viera_ramos",
+      "position": "Left Wing",
+      "minutes": 3235.4553166666665
+    },
+    {
+      "name": "Jonathas Cristian de Jesus",
+      "slug": "jonathas_cristian_de_jesus",
+      "position": "Center Forward",
+      "minutes": 1691.6624166666668
+    },
+    {
+      "name": "Jorge Franco Alviz",
+      "slug": "jorge_franco_alviz",
+      "position": "Left Wing",
+      "minutes": 1051.1211333333333
+    },
+    {
+      "name": "Jorge Molina Vidal",
+      "slug": "jorge_molina_vidal",
+      "position": "Right Center Forward",
+      "minutes": 972.3426666666666
+    },
+    {
+      "name": "José Antonio Reyes Calderón",
+      "slug": "jose_antonio_reyes_calderon",
+      "position": "Right Wing",
+      "minutes": 1241.0587166666667
+    },
+    {
+      "name": "Karim Benzema",
+      "slug": "karim_benzema",
+      "position": "Center Forward",
+      "minutes": 2037.68065
+    },
+    {
+      "name": "Kevin Gameiro",
+      "slug": "kevin_gameiro",
+      "position": "Center Forward",
+      "minutes": 2177.707516666667
+    },
+    {
+      "name": "Leonardo Carrilho Baptistão",
+      "slug": "leonardo_carrilho_baptistao",
+      "position": "Right Center Forward",
+      "minutes": 1335.1788999999999
+    },
+    {
+      "name": "Lionel Andrés Messi Cuccittini",
+      "slug": "lionel_andres_messi_cuccittini",
+      "position": "Right Wing",
+      "minutes": 2831.42535
+    },
+    {
+      "name": "Lucas Pérez Martínez",
+      "slug": "lucas_perez_martinez",
+      "position": "Center Forward",
+      "minutes": 3269.9961
+    },
+    {
+      "name": "Lucas Vázquez Iglesias",
+      "slug": "lucas_vazquez_iglesias",
+      "position": "Right Wing",
+      "minutes": 1298.8983500000002
+    },
+    {
+      "name": "Luciano Vietto",
+      "slug": "luciano_vietto",
+      "position": "Right Center Forward",
+      "minutes": 992.9971166666667
+    },
+    {
+      "name": "Luis Alberto Suárez Díaz",
+      "slug": "luis_alberto_suarez_diaz",
+      "position": "Center Forward",
+      "minutes": 3273.2028666666665
+    },
+    {
+      "name": "Manuel Agudo Durán",
+      "slug": "manuel_agudo_duran",
+      "position": "Left Wing",
+      "minutes": 2587.228
+    },
+    {
+      "name": "Markel Susaeta Laskurain",
+      "slug": "markel_susaeta_laskurain",
+      "position": "Right Wing",
+      "minutes": 1985.8761166666668
+    },
+    {
+      "name": "Michael Krohn-Dehli",
+      "slug": "michael_krohn_dehli",
+      "position": "Left Wing",
+      "minutes": 1753.5430999999999
+    },
+    {
+      "name": "Miguel Ángel Guerrero Martín",
+      "slug": "miguel_angel_guerrero_martin",
+      "position": "Center Forward",
+      "minutes": 1134.7889333333335
+    },
+    {
+      "name": "Mikel Oyarzabal Ugarte",
+      "slug": "mikel_oyarzabal_ugarte",
+      "position": "Left Wing",
+      "minutes": 1566.9210666666668
+    },
+    {
+      "name": "Mubarak Wakaso",
+      "slug": "mubarak_wakaso",
+      "position": "Left Wing",
+      "minutes": 980.7407333333333
+    },
+    {
+      "name": "Nabil Ghilas",
+      "slug": "nabil_ghilas",
+      "position": "Right Center Forward",
+      "minutes": 1066.0437666666667
+    },
+    {
+      "name": "Neymar da Silva Santos Junior",
+      "slug": "neymar_da_silva_santos_junior",
+      "position": "Left Wing",
+      "minutes": 3163.648833333333
+    },
+    {
+      "name": "Nicolás Ladislao Fedor Flores",
+      "slug": "nicolas_ladislao_fedor_flores",
+      "position": "Center Forward",
+      "minutes": 1611.7196666666666
+    },
+    {
+      "name": "Nordin Amrabat",
+      "slug": "nordin_amrabat",
+      "position": "Right Center Forward",
+      "minutes": 1028.9515833333332
+    },
+    {
+      "name": "Pablo Sarabia García",
+      "slug": "pablo_sarabia_garcia",
+      "position": "Right Wing",
+      "minutes": 2621.37775
+    },
+    {
+      "name": "Pedro León Sánchez Gil",
+      "slug": "pedro_leon_sanchez_gil",
+      "position": "Right Wing",
+      "minutes": 1901.4034166666668
+    },
+    {
+      "name": "Roberto Soldado Rillo",
+      "slug": "roberto_soldado_rillo",
+      "position": "Left Center Forward",
+      "minutes": 2335.987866666667
+    },
+    {
+      "name": "Rodrigo Moreno Machado",
+      "slug": "rodrigo_moreno_machado",
+      "position": "Right Wing",
+      "minutes": 1445.5992166666667
+    },
+    {
+      "name": "Rubén Castro Martín",
+      "slug": "ruben_castro_martin",
+      "position": "Center Forward",
+      "minutes": 3521.3379999999997
+    },
+    {
+      "name": "Rubén Gracia Calmache",
+      "slug": "ruben_gracia_calmache",
+      "position": "Left Wing",
+      "minutes": 912.0210666666667
+    },
+    {
+      "name": "Sabin Merino Zuloaga",
+      "slug": "sabin_merino_zuloaga",
+      "position": "Left Wing",
+      "minutes": 1186.0897333333332
+    },
+    {
+      "name": "Santiago Mina Lorenzo",
+      "slug": "santiago_mina_lorenzo",
+      "position": "Right Wing",
+      "minutes": 1646.5307166666666
+    },
+    {
+      "name": "Saúl Berjón Pérez",
+      "slug": "saul_berjon_perez",
+      "position": "Left Wing",
+      "minutes": 1463.39245
+    },
+    {
+      "name": "Sergio Enrich Ametller",
+      "slug": "sergio_enrich_ametller",
+      "position": "Right Center Forward",
+      "minutes": 2521.4707333333336
+    },
+    {
+      "name": "Sergio Ezequiel Araújo",
+      "slug": "sergio_ezequiel_araujo",
+      "position": "Center Forward",
+      "minutes": 1913.1303166666667
+    },
+    {
+      "name": "Sofiane Feghouli",
+      "slug": "sofiane_feghouli",
+      "position": "Right Wing",
+      "minutes": 1333.7595833333332
+    },
+    {
+      "name": "Stefan Šćepović",
+      "slug": "stefan_scepovic",
+      "position": "Center Forward",
+      "minutes": 1921.1578833333333
+    },
+    {
+      "name": "Takashi Inui",
+      "slug": "takashi_inui",
+      "position": "Left Wing",
+      "minutes": 1690.0638833333333
+    },
+    {
+      "name": "Théo Bongonda Mbul''Ofeko Batombo",
+      "slug": "theo_bongonda_mbul_ofeko_batombo",
+      "position": "Left Wing",
+      "minutes": 1243.1887833333333
+    },
+    {
+      "name": "Tiago Manuel Dias Correia",
+      "slug": "tiago_manuel_dias_correia",
+      "position": "Left Wing",
+      "minutes": 2321.560883333333
+    },
+    {
+      "name": "Víctor Casadesús Castaño",
+      "slug": "victor_casadesus_castano",
+      "position": "Right Center Forward",
+      "minutes": 1021.0904166666667
+    },
+    {
+      "name": "Víctor Machín Pérez",
+      "slug": "victor_machin_perez",
+      "position": "Right Wing",
+      "minutes": 2143.1929
+    },
+    {
+      "name": "Willian José da Silva",
+      "slug": "willian_jose_da_silva",
+      "position": "Center Forward",
+      "minutes": 1822.9762833333334
+    },
+    {
+      "name": "Xabier Prieto Argarate",
+      "slug": "xabier_prieto_argarate",
+      "position": "Right Wing",
+      "minutes": 2483.180316666667
+    },
+    {
+      "name": "Yevhen Konoplyanka",
+      "slug": "yevhen_konoplyanka",
+      "position": "Left Wing",
+      "minutes": 1709.7570166666667
+    },
+    {
+      "name": "Youssef El-Arabi",
+      "slug": "youssef_el_arabi",
+      "position": "Center Forward",
+      "minutes": 2640.114216666667
+    },
+    {
+      "name": "Álvaro Cejudo Carmona",
+      "slug": "alvaro_cejudo_carmona",
+      "position": "Left Wing",
+      "minutes": 1951.6562833333332
+    },
+    {
+      "name": "Álvaro Negredo Sánchez",
+      "slug": "alvaro_negredo_sanchez",
+      "position": "Center Forward",
+      "minutes": 1232.7231666666667
+    },
+    {
+      "name": "Álvaro Vázquez García",
+      "slug": "alvaro_vazquez_garcia",
+      "position": "Center Forward",
+      "minutes": 2063.9025166666665
+    },
+    {
+      "name": "Ángel Lafita Castillo",
+      "slug": "angel_lafita_castillo",
+      "position": "Left Wing",
+      "minutes": 1044.1197333333334
+    }
+  ]
+}

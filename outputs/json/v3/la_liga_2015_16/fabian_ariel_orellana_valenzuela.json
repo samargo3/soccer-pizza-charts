@@ -1,0 +1,152 @@
+{
+  "schema_version": 3,
+  "generated_at": "2026-08-25T16:08:40.970449+00:00",
+  "data_source": {
+    "provider": "StatsBomb open data",
+    "library": "statsbombpy",
+    "version": "1.22.0"
+  },
+  "player": {
+    "name": "Fabián Ariel Orellana Valenzuela",
+    "position": "Right Wing",
+    "position_group": "Forward",
+    "minutes": 3123.68035
+  },
+  "competition": {
+    "league": "La Liga",
+    "season": "2015/16"
+  },
+  "peer_group": {
+    "position_group": "Forward",
+    "min_minutes": 900,
+    "n_players": 86,
+    "description": "Forwards with at least 900 minutes, La Liga 2015/16"
+  },
+  "categories": [
+    {
+      "key": "attacking",
+      "label": "Attacking",
+      "color": "#FF4D5E"
+    },
+    {
+      "key": "possession_progression",
+      "label": "Possession / Progression",
+      "color": "#22D3A6"
+    },
+    {
+      "key": "defending",
+      "label": "Defending",
+      "color": "#4C9AFF"
+    }
+  ],
+  "metrics": [
+    {
+      "metric": "np_goals_per90",
+      "label": "NP goals",
+      "category": "Attacking",
+      "category_key": "attacking",
+      "value_per90": 0.17287300219435064,
+      "percentile": 38.372093023255815,
+      "higher_is_better": true
+    },
+    {
+      "metric": "npxg_per90",
+      "label": "npxG",
+      "category": "Attacking",
+      "category_key": "attacking",
+      "value_per90": 0.23100413017036137,
+      "percentile": 47.674418604651166,
+      "higher_is_better": true
+    },
+    {
+      "metric": "shots_per90",
+      "label": "Shots",
+      "category": "Attacking",
+      "category_key": "attacking",
+      "value_per90": 2.2185368614941665,
+      "percentile": 50.0,
+      "higher_is_better": true
+    },
+    {
+      "metric": "assists_per90",
+      "label": "Assists",
+      "category": "Attacking",
+      "category_key": "attacking",
+      "value_per90": 0.20168516922674243,
+      "percentile": 74.4186046511628,
+      "higher_is_better": true
+    },
+    {
+      "metric": "key_passes_per90",
+      "label": "Key passes",
+      "category": "Attacking",
+      "category_key": "attacking",
+      "value_per90": 1.4982326856843722,
+      "percentile": 70.93023255813954,
+      "higher_is_better": true
+    },
+    {
+      "metric": "pass_completion_pct",
+      "label": "Pass %",
+      "category": "Possession / Progression",
+      "category_key": "possession_progression",
+      "value_per90": 74.50030284675954,
+      "percentile": 76.74418604651163,
+      "higher_is_better": true
+    },
+    {
+      "metric": "progressive_passes_per90",
+      "label": "Prog. passes",
+      "category": "Possession / Progression",
+      "category_key": "possession_progression",
+      "value_per90": 5.0709413977009525,
+      "percentile": 80.23255813953489,
+      "higher_is_better": true
+    },
+    {
+      "metric": "progressive_carries_per90",
+      "label": "Prog. carries",
+      "category": "Possession / Progression",
+      "category_key": "possession_progression",
+      "value_per90": 5.330250900992478,
+      "percentile": 81.3953488372093,
+      "higher_is_better": true
+    },
+    {
+      "metric": "successful_dribbles_per90",
+      "label": "Succ. dribbles",
+      "category": "Possession / Progression",
+      "category_key": "possession_progression",
+      "value_per90": 3.140526206530703,
+      "percentile": 95.34883720930233,
+      "higher_is_better": true
+    },
+    {
+      "metric": "tackles_won_per90",
+      "label": "Tackles won",
+      "category": "Defending",
+      "category_key": "defending",
+      "value_per90": 0.6626798417450108,
+      "percentile": 43.02325581395349,
+      "higher_is_better": true
+    },
+    {
+      "metric": "interceptions_per90",
+      "label": "Interceptions",
+      "category": "Defending",
+      "category_key": "defending",
+      "value_per90": 1.1236745142632791,
+      "percentile": 75.5813953488372,
+      "higher_is_better": true
+    },
+    {
+      "metric": "blocks_per90",
+      "label": "Blocks",
+      "category": "Defending",
+      "category_key": "defending",
+      "value_per90": 1.1236745142632791,
+      "percentile": 31.3953488372093,
+      "higher_is_better": true
+    }
+  ]
+}
