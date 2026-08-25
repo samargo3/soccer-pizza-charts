@@ -20,6 +20,11 @@ Pizza slices are grouped into categories. Proposed grouping (adjust as you go):
 - **Progression** — progressive carries, progressive passes, dribbles.
 - **Attacking** — non-penalty goals, xG, shots, assists, xA.
 
+The pizza currently uses **three** display groups — Attacking, Possession /
+Progression, Defending. Colors and labels live in `config/theme.json` (do not
+hardcode them). All 12 pizza metrics are **higher-is-better**. The JSON contract
+is in `docs/schema.md` (`schema_version` 3).
+
 ## How percentiles work here
 
 Each metric shown on the chart is converted to a **percentile rank within a peer
@@ -45,13 +50,17 @@ Minutes are not a StatsBomb column. Per match:
 - Players listed as `substitution_replacement` begin at that Substitution
   event's elapsed time.
 - Players listed as `player` on a Substitution event (coming off) end there.
+- A sending-off ends the interval at the card's elapsed time. StatsBomb stores
+  this as `foul_committed_card` (on `Foul Committed`) or `bad_behaviour_card`
+  (on `Bad Behaviour`). Values that count: **Red Card**, **Second Yellow**.
+  A lone Yellow Card does not. If both a sub-off and a sending-off exist, the
+  earlier clock wins.
 - Everyone else ends at the last **Half End** of the match.
 - Season minutes = sum across matches.
 
-**Known inaccuracy:** red cards / second yellows (`foul_committed_card`,
-`bad_behaviour_card`) are not used as an off-time. A sent-off player is still
-counted until match end, so that team's player-minutes run slightly above
-11 × match length.
+With sending-offs applied, that team's player-minutes for the match sit **below**
+11 × match length by the dismissed player's remaining time. Matches with no
+sending-off still sum to 11 × length.
 
 ## Metric table
 
@@ -61,7 +70,7 @@ counted until match end, so that team's player-minutes run slightly above
 | npxG | Attacking | Yes | `shot_statsbomb_xg` on non-penalty shots | Sum of StatsBomb xG excluding penalties | Includes blocked / off-target shots; excludes `shot_type=Penalty` |
 | Shots | Attacking | Yes | `type=Shot` | All shots, including penalties | |
 | Assists | Attacking | Yes | `pass_goal_assist=True` | Passes tagged as the goal assist | Flag is True vs null, not True/False. Disjoint from `pass_shot_assist` in this dump |
-| Key passes | Attacking | Yes | `pass_shot_assist=True` | Passes that assisted a shot but not a goal | Not a superset of assists here — the two flags do not overlap |
+| Key passes | Attacking | Yes | `pass_shot_assist=True` **or** `pass_goal_assist=True` | Passes that created a shot, including those that became goals | StatsBomb tags the two flags mutually exclusively, so a conventional key pass is the **union**. Assist count is unchanged (still goal-assists only). |
 | Passes attempted | Possession | Yes | `type=Pass` | All pass events | |
 | Passes completed | Possession | Yes | `type=Pass` and `pass_outcome` null | Completed passes | StatsBomb leaves `pass_outcome` null on a successful pass. Unsuccessful: Incomplete, Out, Pass Offside, Unknown, Injury Clearance |
 | Pass completion % | Possession | No | completed / attempted | Already a rate — do not per-90 | |
@@ -140,5 +149,4 @@ midfielders. Unmapped / null positions are excluded from every pool.
 ## Open questions
 
 - How to handle players who changed position mid-season? (currently: modal)
-- Should key passes include assists? In this feed the flags are disjoint.
 - Finer peer groups (striker vs winger) if the Forward pool feels mixed.

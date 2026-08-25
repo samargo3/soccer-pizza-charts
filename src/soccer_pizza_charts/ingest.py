@@ -18,7 +18,7 @@ from statsbombpy.api_client import NoAuthWarning
 COMPETITION_ID = 11
 SEASON_ID = 27
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parents[2]  # src/soccer_pizza_charts -> repo root
 DATA_DIR = REPO_ROOT / "data"
 EVENTS_PARQUET = DATA_DIR / "events_la_liga_2015_16.parquet"
 MATCH_CACHE_DIR = DATA_DIR / "raw" / "statsbomb" / "events"

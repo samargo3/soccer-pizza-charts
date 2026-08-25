@@ -1,2 +1,1 @@
-def main() -> None:
-    print("Hello from soccer-pizza-charts!")
+"""Soccer pizza charts: ingest → transform → compute."""

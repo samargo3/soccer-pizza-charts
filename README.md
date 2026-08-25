@@ -53,9 +53,22 @@ soccerdata             compute (percentiles)           JSON            pizza cha
 │   ├── metrics.md         Data dictionary — every stat and how it's computed
 │   ├── log.md             Running dev log
 │   └── adr/               Architecture Decision Records (the "why")
-├── pipeline/              Python pipeline code (ingest/transform/compute)
+├── src/soccer_pizza_charts/   Installed package: ingest / transform / compute
 └── data/                  Local data cache — NOT committed to git
 ```
+
+Pipeline modules live in `src/soccer_pizza_charts/` (import as
+`soccer_pizza_charts.transform`, etc.):
+
+- `ingest.py` — fetch StatsBomb open events (La Liga 2015/16) and cache to
+  `data/events_la_liga_2015_16.parquet`. Re-runs skip per-match files already
+  under `data/raw/statsbomb/events/`.
+- `transform.py` — pure functions (`derive_minutes`, `assign_positions`,
+  `counting_metrics`, `progression_metrics`, `build_player_season`) plus I/O
+  at the edges. Reads the events Parquet, writes
+  `data/player_season_la_liga_2015_16.parquet`.
+- `compute.py` — percentile ranks within a position group; pizza PNG in
+  `outputs/`. Does not re-fetch or rebuild the player-season table.
 
 ## Getting started
 
