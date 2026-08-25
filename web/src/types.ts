@@ -65,3 +65,20 @@ export type Theme = {
     required_text: string;
   };
 };
+
+/** Mirrors outputs/json/v3/.../index.json. See docs/schema.md. */
+export type ManifestPlayer = {
+  name: string;
+  slug: string;
+  position: string;
+  minutes: number;
+};
+
+export type SearchManifest = {
+  schema_version: number;
+  competition: {
+    league: string;
+    season: string;
+  };
+  players: ManifestPlayer[];
+};

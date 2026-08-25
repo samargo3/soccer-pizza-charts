@@ -5,6 +5,18 @@ Newest entries at the top. This is for your future self — keep it low-effort.
 
 ---
 
+## 2026-08-25 — Phase 3 final: Vercel production build
+
+- `npm run build` in `web/` succeeds. Fetch paths are root-relative. No
+  `vercel.json` (single page, no client router). Root `.gitignore` now uses
+  `/data/` so `web/public/data/` is committable.
+
+## 2026-08-25 — Phase 3 step 4b: player search + switching
+
+- App fetches `index.json` once and a player JSON on select. `PizzaChart` is
+  unchanged (props in, SVG out). Search is accent-insensitive; keyboard
+  combobox (arrows / Enter / Escape). Default player is Suárez.
+
 ## 2026-08-25 — Phase 3 step 4a: batch player JSON + search manifest
 
 - `write_peer_group_json` exports every Forward (≥900 min) as schema 3 JSON
