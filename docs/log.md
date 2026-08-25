@@ -5,6 +5,12 @@ Newest entries at the top. This is for your future self — keep it low-effort.
 
 ---
 
+## 2026-08-25 — Phase 4 Part A: GitHub Actions pytest CI
+
+- `.github/workflows/ci.yml` runs `uv sync --locked` + `uv run pytest -q` on
+  every push and on PRs to `main`. pytest is a declared `dev` dependency.
+  No frontend build, no data fetch.
+
 ## 2026-08-25 — Phase 3 final: Vercel production build
 
 - `npm run build` in `web/` succeeds. Fetch paths are root-relative. No
