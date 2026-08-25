@@ -1,0 +1,37 @@
+{
+  "_note": "Design tokens for soccer pizza charts. Single source of truth for visual identity, read by the matplotlib renderer now and the Phase 3 web/D3 UI later. Change colors/brand here, not in code.",
+  "name": "Argo Pizza Charts Dark",
+  "mode": "dark",
+  "color": {
+    "background": "#0E1117",
+    "surface": "#171B24",
+    "grid": "#262C37",
+    "track": "#1E2530",
+    "text_primary": "#F2F4F7",
+    "text_secondary": "#9AA3AF",
+    "text_on_slice": "#0E1117"
+  },
+  "categories": {
+    "attacking": { "label": "Attacking", "color": "#FF4D5E" },
+    "possession_progression": { "label": "Possession / Progression", "color": "#22D3A6" },
+    "defending": { "label": "Defending", "color": "#4C9AFF" }
+  },
+  "brand": {
+    "show": true,
+    "name": "SET YOUR BRAND NAME",
+    "handle": "@sargo",
+    "_note": "Set name to your portfolio/brand label; handle renders discreetly on the chart. Change or remove handle as you like."
+  },
+  "typography": {
+    "family": "DejaVu Sans",
+    "title_weight": "bold",
+    "title_size": 20,
+    "subtitle_size": 11,
+    "slice_label_size": 10,
+    "_note": "family can be swapped for a custom font (condensed geometric sans reads well here) via matplotlib font_manager now and @font-face on the web later."
+  },
+  "attribution": {
+    "required_text": "Data: StatsBomb open data",
+    "_note": "StatsBomb open-data terms require crediting the source. Keep this on any published chart (see ADR 0003)."
+  }
+}

@@ -1,5 +1,7 @@
-# ---- Data (never commit raw or cached data) ----
-data/
+# ---- Data (never commit raw or cached pipeline cache) ----
+# Leading slash = repo-root only. Do not ignore web/public/data/ — that
+# snapshot is what Vercel serves and must be committed.
+/data/
 *.parquet
 *.duckdb
 *.duckdb.wal
@@ -27,6 +29,7 @@ build/
 
 # ---- Node / frontend (Phase 3+) ----
 node_modules/
+web/node_modules/
 web/dist/
 web/.vite/
 npm-debug.log*

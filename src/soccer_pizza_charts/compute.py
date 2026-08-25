@@ -179,6 +179,30 @@ def _slug(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", ascii_text.lower()).strip("_")
 
 
+def unique_slugs(names: list[str]) -> list[str]:
+    """Lowercased, ASCII-folded, underscore-joined slugs. Collisions get _2, _3, …"""
+    used: set[str] = set()
+    out: list[str] = []
+    for name in names:
+        base = _slug(name)
+        slug = base
+        n = 2
+        while slug in used:
+            slug = f"{base}_{n}"
+            n += 1
+        used.add(slug)
+        out.append(slug)
+    return out
+
+
+def json_competition_dir(
+    league: str = LEAGUE,
+    season: str = SEASON,
+    schema_version: int = SCHEMA_VERSION,
+) -> Path:
+    return JSON_DIR / f"v{schema_version}" / f"{_slug(league)}_{_slug(season)}"
+
+
 def player_json_path(
     player_name: str,
     league: str = LEAGUE,
@@ -283,6 +307,95 @@ def write_player_json(payload: dict[str, object], path: Path | None = None) -> P
     )
     return path
 
+
+def search_manifest(
+    players: list[dict[str, object]],
+    *,
+    league: str,
+    season: str,
+    schema_version: int = SCHEMA_VERSION,
+) -> dict[str, object]:
+    """UI search index. Players sorted by name. No percentile math."""
+    return {
+        "schema_version": schema_version,
+        "competition": {"league": league, "season": season},
+        "players": sorted(players, key=lambda row: str(row["name"])),
+    }
+
+
+def write_peer_group_json(
+    pool: pd.DataFrame,
+    *,
+    peer_group: str = PEER_GROUP,
+    league: str = LEAGUE,
+    season: str = SEASON,
+    min_minutes: int = MIN_MINUTES,
+    schema_version: int = SCHEMA_VERSION,
+    out_dir: Path | None = None,
+) -> tuple[list[Path], Path]:
+    """One v3 JSON per player in `pool`, plus index.json. Same peer group for all.
+
+    Percentiles are ranked within this pool (docs/metrics.md). Existing files for
+    the same player keep their generated_at so a re-export of an unchanged row
+    stays byte-identical (Suárez).
+    """
+    dest = out_dir if out_dir is not None else json_competition_dir(
+        league, season, schema_version
+    )
+    dest.mkdir(parents=True, exist_ok=True)
+
+    names = pool["player"].astype(str).tolist()
+    slugs = unique_slugs(names)
+    batch_generated_at = datetime.now(timezone.utc).isoformat()
+    peer_group_size = len(pool)
+    written: list[Path] = []
+    entries: list[dict[str, object]] = []
+
+    for (_, row), slug in zip(pool.iterrows(), slugs, strict=True):
+        player_name = str(row["player"])
+        path = dest / f"{slug}.json"
+        generated_at = batch_generated_at
+        if path.exists():
+            existing = json.loads(path.read_text(encoding="utf-8"))
+            existing_player = existing.get("player")
+            if (
+                isinstance(existing_player, dict)
+                and existing_player.get("name") == player_name
+            ):
+                generated_at = str(existing["generated_at"])
+        pct = player_percentiles(pool, player_name)
+        payload = export_player_json(
+            pct,
+            player_name=player_name,
+            position_group=peer_group,
+            minutes=float(row["minutes"]),
+            league=league,
+            season=season,
+            min_minutes=min_minutes,
+            peer_group_size=peer_group_size,
+            position=str(row["position"]),
+            schema_version=schema_version,
+            generated_at=generated_at,
+        )
+        written.append(write_player_json(payload, path))
+        entries.append(
+            {
+                "name": player_name,
+                "slug": slug,
+                "position": str(row["position"]),
+                "minutes": float(row["minutes"]),
+            }
+        )
+
+    manifest = search_manifest(
+        entries, league=league, season=season, schema_version=schema_version
+    )
+    manifest_path = dest / "index.json"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    return written, manifest_path
 
 
 def render_pizza(
@@ -446,20 +559,9 @@ def main() -> None:
     )
 
     minutes = float(pool.loc[pool["player"].eq(PLAYER_NAME), "minutes"].iloc[0])
-    position = str(pool.loc[pool["player"].eq(PLAYER_NAME), "position"].iloc[0])
-    payload = export_player_json(
-        pct,
-        player_name=PLAYER_NAME,
-        position_group=PEER_GROUP,
-        minutes=minutes,
-        league=LEAGUE,
-        season=SEASON,
-        min_minutes=MIN_MINUTES,
-        peer_group_size=len(pool),
-        position=position,
-    )
-    json_path = write_player_json(payload)
-    print("\nwrote", json_path)
+    player_paths, manifest_path = write_peer_group_json(pool)
+    print(f"\nwrote {len(player_paths)} player JSON files")
+    print("wrote", manifest_path)
 
     path = render_pizza(pct, PLAYER_NAME, minutes, len(pool), path=DARK_CHART_PATH)
     print("\nsaved", path)

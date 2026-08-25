@@ -24,6 +24,9 @@ from soccer_pizza_charts.compute import (
     percentile_ranks,
     player_percentiles,
     position_group,
+    search_manifest,
+    unique_slugs,
+    write_peer_group_json,
     write_player_json,
 )
 from soccer_pizza_charts.theme import category_entries
@@ -256,3 +259,43 @@ def test_export_suarez_json_matches_computed_table() -> None:
             "possession_progression",
             "defending",
         }
+
+
+def test_unique_slugs_fold_and_disambiguate() -> None:
+    assert unique_slugs(["Luis Alberto Suárez Díaz"]) == ["luis_alberto_suarez_diaz"]
+    assert unique_slugs(["José", "Jose", "José"]) == ["jose", "jose_2", "jose_3"]
+
+
+def test_search_manifest_sorted_by_name() -> None:
+    payload = search_manifest(
+        [
+            {"name": "Zed", "slug": "zed", "position": "Left Wing", "minutes": 1000.0},
+            {"name": "Ann", "slug": "ann", "position": "Center Forward", "minutes": 2000.0},
+        ],
+        league=LEAGUE,
+        season=SEASON,
+    )
+    assert payload["schema_version"] == 3
+    assert payload["competition"] == {"league": LEAGUE, "season": SEASON}
+    names = [row["name"] for row in payload["players"]]
+    assert names == ["Ann", "Zed"]
+
+
+def test_write_peer_group_json_and_manifest(tmp_path) -> None:
+    pool = _two_player_pool()
+    paths, manifest_path = write_peer_group_json(pool, out_dir=tmp_path)
+    assert len(paths) == 2
+    assert manifest_path == tmp_path / "index.json"
+    slugs = {path.stem for path in paths}
+    assert slugs == {"luis_alberto_suarez_diaz", "other"}
+    for path in paths:
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+        assert loaded["schema_version"] == 3
+        assert loaded["peer_group"]["n_players"] == 2
+        assert len(loaded["metrics"]) == 12
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert manifest["schema_version"] == 3
+    assert manifest["competition"] == {"league": LEAGUE, "season": SEASON}
+    assert [row["name"] for row in manifest["players"]] == [SUAREZ, "Other"]
+    assert {row["slug"] for row in manifest["players"]} == slugs
+

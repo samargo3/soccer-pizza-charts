@@ -65,6 +65,31 @@ are not hardcoded in Python. `metrics[].category_key` joins to `categories[].key
 | `category_key` | Stable join key (`attacking` / `possession_progression` / `defending`). |
 | `higher_is_better` | Direction for the UI. All 12 are `true` today; do not hardcode that. |
 
+## Search manifest (`index.json`)
+
+Batch export also writes a directory listing the UI search box can fetch:
+
+`outputs/json/v3/la_liga_2015_16/index.json`
+
+```json
+{
+  "schema_version": 3,
+  "competition": { "league": "La Liga", "season": "2015/16" },
+  "players": [
+    {
+      "name": "Luis Alberto Suárez Díaz",
+      "slug": "luis_alberto_suarez_diaz",
+      "position": "Center Forward",
+      "minutes": 3273.20
+    }
+  ]
+}
+```
+
+`players` is sorted by `name`. `slug` is the player JSON filename stem (ASCII-folded,
+underscore-joined; `_2`, `_3`, … if two names collide). Percentiles are not in
+the manifest — load the player file for those.
+
 ## History
 
 - **1** — player, competition, peer group, 12 metrics (`value_per90` + `percentile`).

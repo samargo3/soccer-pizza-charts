@@ -5,6 +5,44 @@ Newest entries at the top. This is for your future self — keep it low-effort.
 
 ---
 
+## 2026-08-25 — Phase 3 final: Vercel production build
+
+- `npm run build` in `web/` succeeds. Fetch paths are root-relative. No
+  `vercel.json` (single page, no client router). Root `.gitignore` now uses
+  `/data/` so `web/public/data/` is committable.
+
+## 2026-08-25 — Phase 3 step 4b: player search + switching
+
+- App fetches `index.json` once and a player JSON on select. `PizzaChart` is
+  unchanged (props in, SVG out). Search is accent-insensitive; keyboard
+  combobox (arrows / Enter / Escape). Default player is Suárez.
+
+## 2026-08-25 — Phase 3 step 4a: batch player JSON + search manifest
+
+- `write_peer_group_json` exports every Forward (≥900 min) as schema 3 JSON
+  plus `index.json` (name/slug/position/minutes, sorted by name). Same pool
+  for all percentiles. Suárez file kept byte-identical via existing
+  `generated_at`. Copied `outputs/json/v3/` into `web/public/data/json/v3/`.
+
+## 2026-08-25 — Phase 3 step 3: wedge hover + keyboard tooltip
+
+- Hover/focus a wedge to highlight it, dim the others, and show a tooltip
+  (label, category, per-90 or pass %, percentile). Colors from theme tokens.
+  Full-radius hit targets so short slices stay reachable.
+
+## 2026-08-25 — Phase 3 step 2: D3 pizza (no hover)
+
+- `PizzaChart` takes player JSON + theme as props; `d3.arc` + linear radius
+  scale. Colors from `config/theme.json` tokens, not hardcoded in the component.
+- App fetches Suárez JSON and the theme; smoke-test list replaced by the SVG.
+
+## 2026-08-25 — Phase 3 step 1: Vite + React scaffold (no chart)
+
+- Vite + React + TypeScript app in `web/`. `d3` installed but unused.
+- Copied `outputs/json/v3/` and `config/theme.json` into `web/public/`
+  (manual until Phase 4). Smoke test fetches Suárez JSON and lists name,
+  position group, minutes, and 12 metric percentiles as plain text.
+
 ## 2026-08-24 — Phase 2 final: dark theme tokens + schema 3
 
 - Visual identity lives in `config/theme.json`. `theme.py` loads it; compute.py
