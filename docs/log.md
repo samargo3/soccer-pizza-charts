@@ -5,6 +5,14 @@ Newest entries at the top. This is for your future self — keep it low-effort.
 
 ---
 
+## 2026-08-24 — Phase 2 final: dark theme tokens + schema 3
+
+- Visual identity lives in `config/theme.json`. `theme.py` loads it; compute.py
+  has no hardcoded hex. Dark pizza saved as
+  `outputs/luis_suarez_la_liga_2015_16_dark.png` (light PNG kept as reference).
+- JSON `schema_version` 3: `category_key` on each metric, category colors from
+  the theme. Percentiles unchanged.
+
 ## 2026-08-24 — Phase 2 step 3B: deduct red-card minutes
 
 - Sending-off (`Red Card` or `Second Yellow` on `foul_committed_card` or

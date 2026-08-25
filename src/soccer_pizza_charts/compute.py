@@ -20,11 +20,14 @@ import pandas as pd
 from matplotlib.patches import Patch
 from mplsoccer import PyPizza
 
+from soccer_pizza_charts.theme import category_color, category_entries, category_label, load_theme
+
 REPO_ROOT = Path(__file__).resolve().parents[2]  # src/soccer_pizza_charts -> repo root
 DATA_DIR = REPO_ROOT / "data"
 PLAYER_SEASON_PARQUET = DATA_DIR / "player_season_la_liga_2015_16.parquet"
 OUTPUTS_DIR = REPO_ROOT / "outputs"
 CHART_PATH = OUTPUTS_DIR / "luis_suarez_la_liga_2015_16.png"
+DARK_CHART_PATH = OUTPUTS_DIR / "luis_suarez_la_liga_2015_16_dark.png"
 JSON_DIR = OUTPUTS_DIR / "json"
 
 # Matplotlib cache inside the repo so sandboxed runs don't need $HOME.
@@ -32,7 +35,7 @@ os.environ.setdefault("MPLCONFIGDIR", str(REPO_ROOT / ".mplconfig"))
 
 # Minutes floor for the comparison pool. Recorded in docs/metrics.md.
 MIN_MINUTES = 900
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 LEAGUE = "La Liga"
 SEASON = "2015/16"
 
@@ -64,39 +67,21 @@ POSITION_GROUP: dict[str, str] = {
 PEER_GROUP = "Forward"
 
 # Slice order for the pizza. Per-90 except pass completion % (already a rate).
-# All twelve: higher is better — no inversion. docs/metrics.md.
+# Third field is the theme category key (config/theme.json). docs/metrics.md.
 PIZZA_METRICS: list[tuple[str, str, str]] = [
-    # (column, chart label, category)
-    ("np_goals_per90", "NP goals", "Attacking"),
-    ("npxg_per90", "npxG", "Attacking"),
-    ("shots_per90", "Shots", "Attacking"),
-    ("assists_per90", "Assists", "Attacking"),
-    ("key_passes_per90", "Key passes", "Attacking"),
-    ("pass_completion_pct", "Pass %", "Possession/Progression"),
-    ("progressive_passes_per90", "Prog. passes", "Possession/Progression"),
-    ("progressive_carries_per90", "Prog. carries", "Possession/Progression"),
-    ("successful_dribbles_per90", "Succ. dribbles", "Possession/Progression"),
-    ("tackles_won_per90", "Tackles won", "Defending"),
-    ("interceptions_per90", "Interceptions", "Defending"),
-    ("blocks_per90", "Blocks", "Defending"),
-]
-
-CATEGORY_COLORS = {
-    "Attacking": "#C0392B",
-    "Possession/Progression": "#1E8449",
-    "Defending": "#2471A3",
-}
-
-# Display metadata for the UI. Colors match the pizza (CATEGORY_COLORS).
-# `key` is stable; `label` is what metric.category currently stores.
-CATEGORIES: list[dict[str, str]] = [
-    {"key": "attacking", "label": "Attacking", "color": CATEGORY_COLORS["Attacking"]},
-    {
-        "key": "possession_progression",
-        "label": "Possession/Progression",
-        "color": CATEGORY_COLORS["Possession/Progression"],
-    },
-    {"key": "defending", "label": "Defending", "color": CATEGORY_COLORS["Defending"]},
+    # (column, chart label, category_key)
+    ("np_goals_per90", "NP goals", "attacking"),
+    ("npxg_per90", "npxG", "attacking"),
+    ("shots_per90", "Shots", "attacking"),
+    ("assists_per90", "Assists", "attacking"),
+    ("key_passes_per90", "Key passes", "attacking"),
+    ("pass_completion_pct", "Pass %", "possession_progression"),
+    ("progressive_passes_per90", "Prog. passes", "possession_progression"),
+    ("progressive_carries_per90", "Prog. carries", "possession_progression"),
+    ("successful_dribbles_per90", "Succ. dribbles", "possession_progression"),
+    ("tackles_won_per90", "Tackles won", "defending"),
+    ("interceptions_per90", "Interceptions", "defending"),
+    ("blocks_per90", "Blocks", "defending"),
 ]
 
 DATA_SOURCE_PROVIDER = "StatsBomb open data"
@@ -173,12 +158,13 @@ def player_percentiles(
         raise KeyError(f"{player_name!r} is not in the comparison pool")
     ranked = compute_percentiles(pool, metrics)
     idx = player.index[0]
-    for column, label, category in metrics:
+    for column, label, category_key in metrics:
         rows.append(
             {
                 "metric": label,
                 "column": column,
-                "category": category,
+                "category": category_label(category_key),
+                "category_key": category_key,
                 "value": float(player[column].iloc[0]),
                 "percentile": float(ranked.loc[idx, f"{column}_percentile"]),
             }
@@ -224,8 +210,9 @@ def export_player_json(
 ) -> dict[str, object]:
     """One player's chart as a dict. No file I/O. See docs/schema.md.
 
-    JSON shape (schema_version 2) — one file describes one player's pizza.
-    Percentile / value_per90 numbers are unchanged from schema 1.
+    JSON shape (schema_version 3) — one file describes one player's pizza.
+    Percentile / value_per90 numbers are unchanged from schema 2. Category
+    colors come from config/theme.json. See docs/schema.md.
     """
     slices: list[dict[str, object]] = []
     for row in percentiles.itertuples(index=False):
@@ -234,6 +221,7 @@ def export_player_json(
                 "metric": row.column,
                 "label": row.metric,
                 "category": row.category,
+                "category_key": row.category_key,
                 "value_per90": float(row.value),
                 "percentile": float(row.percentile),
                 # All 12 pizza metrics are higher-is-better today. The UI
@@ -270,7 +258,7 @@ def export_player_json(
                 f"{league} {season}"
             ),
         },
-        "categories": [dict(item) for item in CATEGORIES],
+        "categories": category_entries(),
         "metrics": slices,
     }
 
@@ -302,75 +290,139 @@ def render_pizza(
     player_name: str,
     minutes: float,
     pool_size: int,
-    path: Path = CHART_PATH,
+    path: Path = DARK_CHART_PATH,
 ) -> Path:
-    """Draw mplsoccer PyPizza and save PNG. Values are percentiles 0–100."""
+    """Draw a dark-theme pizza from config/theme.json. Values are percentiles 0–100."""
+    theme = load_theme()
+    colors = theme["color"]
+    type_tokens = theme["typography"]
+    brand = theme["brand"]
+    family = str(type_tokens["family"])
+    title_size = int(type_tokens["title_size"])
+    subtitle_size = int(type_tokens["subtitle_size"])
+    slice_label_size = int(type_tokens["slice_label_size"])
+    bg = str(colors["background"])
+    grid = str(colors["grid"])
+    track = str(colors["track"])
+    text_primary = str(colors["text_primary"])
+    text_secondary = str(colors["text_secondary"])
+    text_on_slice = str(colors["text_on_slice"])
+
     params = percentiles["metric"].tolist()
     values = [int(round(v)) for v in percentiles["percentile"].tolist()]
     slice_colors = [
-        CATEGORY_COLORS[str(c)] for c in percentiles["category"].tolist()
+        category_color(str(key), theme) for key in percentiles["category_key"].tolist()
     ]
 
     baker = PyPizza(
         params=params,
-        background_color="#F7F7F5",
-        straight_line_color="#B0B0B0",
+        background_color=bg,
+        straight_line_color=grid,
         straight_line_lw=1,
         last_circle_lw=1,
-        last_circle_color="#333333",
+        last_circle_color=grid,
         other_circle_lw=1,
-        other_circle_color="#D0D0D0",
+        other_circle_color=grid,
         inner_circle_size=8,
     )
     fig, ax = baker.make_pizza(
         values,
-        figsize=(10, 11),
-        color_blank_space="same",
+        figsize=(10, 13),
+        color_blank_space=[track] * len(values),
         slice_colors=slice_colors,
-        value_colors=["#FFFFFF"] * len(values),
+        value_colors=[text_on_slice] * len(values),
         value_bck_colors=slice_colors,
-        blank_alpha=0.35,
-        kwargs_slices=dict(edgecolor="#F7F7F5", zorder=2, linewidth=1),
-        kwargs_params=dict(color="#222222", fontsize=11),
+        blank_alpha=1.0,
+        kwargs_slices=dict(edgecolor=bg, zorder=2, linewidth=1),
+        kwargs_params=dict(
+            color=text_primary, fontsize=slice_label_size, fontfamily=family
+        ),
         kwargs_values=dict(
-            color="#FFFFFF",
-            fontsize=10,
+            color=text_on_slice,
+            fontsize=slice_label_size,
+            fontfamily=family,
             zorder=3,
-            bbox=dict(edgecolor="#FFFFFF", boxstyle="round,pad=0.2", lw=0),
+            bbox=dict(
+                edgecolor=bg,
+                boxstyle="round,pad=0.2",
+                lw=0,
+            ),
         ),
     )
-    fig.suptitle(
-        f"{player_name}\nLa Liga 2015/16  ·  Forward  ·  {minutes:,.0f} minutes",
-        fontsize=16,
-        fontweight="bold",
-        color="#222222",
-        y=0.98,
+    fig.set_facecolor(bg)
+    ax.set_facecolor(bg)
+    # Room above the pizza for title + subtitle (they used to overlap) and
+    # room below for the legend + attribution.
+    fig.subplots_adjust(left=0.06, right=0.94, top=0.78, bottom=0.20)
+
+    fig.text(
+        0.5,
+        0.97,
+        player_name,
+        ha="center",
+        va="top",
+        fontsize=title_size,
+        fontweight=str(type_tokens["title_weight"]),
+        fontfamily=family,
+        color=text_primary,
     )
     fig.text(
         0.5,
-        0.935,
-        f"Percentile rank vs {pool_size} Forwards with ≥ {MIN_MINUTES} minutes  ·  "
-        "StatsBomb open data",
+        0.915,
+        f"{LEAGUE} {SEASON}  ·  {PEER_GROUP}  ·  {minutes:,.0f} minutes",
         ha="center",
-        fontsize=10,
-        color="#555555",
+        va="top",
+        fontsize=subtitle_size,
+        fontfamily=family,
+        color=text_secondary,
     )
+    fig.text(
+        0.5,
+        0.875,
+        f"Percentile rank vs {pool_size} Forwards with ≥ {MIN_MINUTES} minutes",
+        ha="center",
+        va="top",
+        fontsize=subtitle_size,
+        fontfamily=family,
+        color=text_secondary,
+    )
+
     legend = [
-        Patch(facecolor=CATEGORY_COLORS["Attacking"], label="Attacking"),
-        Patch(
-            facecolor=CATEGORY_COLORS["Possession/Progression"],
-            label="Possession / Progression",
-        ),
-        Patch(facecolor=CATEGORY_COLORS["Defending"], label="Defending"),
+        Patch(facecolor=category_color(key, theme), label=category_label(key, theme))
+        for key in theme["categories"]
     ]
-    ax.legend(
+    fig.legend(
         handles=legend,
         loc="lower center",
-        bbox_to_anchor=(0.5, -0.08),
+        bbox_to_anchor=(0.5, 0.09),
         ncol=3,
         frameon=False,
-        fontsize=10,
+        fontsize=subtitle_size,
+        labelcolor=text_primary,
+        prop={"family": family, "size": subtitle_size},
     )
+    fig.text(
+        0.5,
+        0.045,
+        str(theme["attribution"]["required_text"]),
+        ha="center",
+        va="bottom",
+        fontsize=9,
+        fontfamily=family,
+        color=text_secondary,
+    )
+    if brand.get("show"):
+        fig.text(
+            0.97,
+            0.02,
+            str(brand["handle"]),
+            ha="right",
+            va="bottom",
+            fontsize=8,
+            fontfamily=family,
+            color=text_secondary,
+        )
+
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path, dpi=160, bbox_inches="tight", facecolor=fig.get_facecolor())
     plt.close(fig)
@@ -409,7 +461,7 @@ def main() -> None:
     json_path = write_player_json(payload)
     print("\nwrote", json_path)
 
-    path = render_pizza(pct, PLAYER_NAME, minutes, len(pool))
+    path = render_pizza(pct, PLAYER_NAME, minutes, len(pool), path=DARK_CHART_PATH)
     print("\nsaved", path)
 
 

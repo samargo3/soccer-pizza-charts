@@ -20,10 +20,10 @@ Pizza slices are grouped into categories. Proposed grouping (adjust as you go):
 - **Progression** — progressive carries, progressive passes, dribbles.
 - **Attacking** — non-penalty goals, xG, shots, assists, xA.
 
-The pizza currently uses **three** display groups — Attacking, Possession/Progression,
-Defending — with colors `#C0392B` / `#1E8449` / `#2471A3`. All 12 pizza metrics
-are **higher-is-better**. The JSON contract (categories, colors, `higher_is_better`)
-is in `docs/schema.md` (`schema_version` 2).
+The pizza currently uses **three** display groups — Attacking, Possession /
+Progression, Defending. Colors and labels live in `config/theme.json` (do not
+hardcode them). All 12 pizza metrics are **higher-is-better**. The JSON contract
+is in `docs/schema.md` (`schema_version` 3).
 
 ## How percentiles work here
 

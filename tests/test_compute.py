@@ -26,6 +26,7 @@ from soccer_pizza_charts.compute import (
     position_group,
     write_player_json,
 )
+from soccer_pizza_charts.theme import category_entries
 
 SUAREZ = "Luis Alberto Suárez Díaz"
 
@@ -141,7 +142,7 @@ def test_export_player_json_shape_order_and_values() -> None:
         "categories",
         "metrics",
     }
-    assert payload["schema_version"] == 2
+    assert payload["schema_version"] == 3
     datetime.fromisoformat(str(payload["generated_at"]))
     player = payload["player"]
     assert isinstance(player, dict)
@@ -156,12 +157,16 @@ def test_export_player_json_shape_order_and_values() -> None:
     categories = payload["categories"]
     assert isinstance(categories, list)
     category_labels = {item["label"] for item in categories}
-    assert category_labels == {"Attacking", "Possession/Progression", "Defending"}
+    theme_labels = {item["label"] for item in category_entries()}
+    assert category_labels == theme_labels
     assert [item["key"] for item in categories] == [
         "attacking",
         "possession_progression",
         "defending",
     ]
+    theme_colors = {item["key"]: item["color"] for item in category_entries()}
+    for item in categories:
+        assert item["color"] == theme_colors[item["key"]]
 
     metrics = payload["metrics"]
     assert isinstance(metrics, list)
@@ -172,11 +177,17 @@ def test_export_player_json_shape_order_and_values() -> None:
         assert set(row) >= {
             "metric",
             "category",
+            "category_key",
             "value_per90",
             "percentile",
             "higher_is_better",
         }
         assert row["higher_is_better"] is True
+        assert row["category_key"] in {
+            "attacking",
+            "possession_progression",
+            "defending",
+        }
 
     by_column = pct.set_index("column")
     for row in metrics:
@@ -203,7 +214,7 @@ def test_write_player_json(tmp_path) -> None:
     path = tmp_path / "player.json"
     written = write_player_json(payload, path)
     loaded = json.loads(written.read_text(encoding="utf-8"))
-    assert loaded["schema_version"] == 2
+    assert loaded["schema_version"] == 3
     assert loaded["player"]["name"] == SUAREZ
     assert len(loaded["metrics"]) == 12
 
@@ -229,12 +240,10 @@ def test_export_suarez_json_matches_computed_table() -> None:
         position=str(row["position"]),
     )
     assert len(payload["metrics"]) == 12
-    assert payload["schema_version"] == 2
+    assert payload["schema_version"] == 3
     datetime.fromisoformat(str(payload["generated_at"]))
     assert {item["label"] for item in payload["categories"]} == {
-        "Attacking",
-        "Possession/Progression",
-        "Defending",
+        item["label"] for item in category_entries()
     }
     by_column = pct.set_index("column")
     for metric_row in payload["metrics"]:
@@ -242,3 +251,8 @@ def test_export_suarez_json_matches_computed_table() -> None:
         assert metric_row["percentile"] == pytest.approx(float(computed["percentile"]))
         assert metric_row["value_per90"] == pytest.approx(float(computed["value"]))
         assert metric_row["higher_is_better"] is True
+        assert metric_row["category_key"] in {
+            "attacking",
+            "possession_progression",
+            "defending",
+        }
