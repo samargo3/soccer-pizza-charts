@@ -1,0 +1,63 @@
+{
+  "_note": "Argo FC Analytics — Broadsheet identity (direction 1b). DRAFT for the branding pass, NOT yet wired in. Supports two modes (dark + light/paper). When adopted, this replaces config/theme.json and both renderers gain a 'mode' parameter. Category keys/labels are shared across modes; only colors differ per mode.",
+  "name": "Argo FC Analytics — Broadsheet",
+  "default_mode": "dark",
+  "typography": {
+    "display_family": "Instrument Serif",
+    "label_family": "Public Sans",
+    "title_weight": "regular",
+    "title_size": 20,
+    "subtitle_size": 11,
+    "slice_label_size": 10,
+    "_note": "Instrument Serif for the player name / title (the editorial 'byline' feel); Public Sans for labels and body. Load via web font (Google Fonts / @font-face) on the web, and via matplotlib font_manager for the PNG."
+  },
+  "categories": {
+    "attacking": { "label": "Attacking" },
+    "possession_progression": { "label": "Possession / Progression" },
+    "defending": { "label": "Defending" }
+  },
+  "modes": {
+    "dark": {
+      "color": {
+        "background": "#141210",
+        "surface": "#221F1B",
+        "grid": "#2E2A24",
+        "track": "#262019",
+        "text_primary": "#F3EDE2",
+        "text_secondary": "#A79C8D",
+        "text_on_slice": "#141210"
+      },
+      "category_colors": {
+        "attacking": "#E4563F",
+        "possession_progression": "#86B08C",
+        "defending": "#7C9AD4"
+      }
+    },
+    "light": {
+      "color": {
+        "background": "#F3ECDD",
+        "surface": "#E9E0CE",
+        "grid": "#D8CDB6",
+        "track": "#E2D8C4",
+        "text_primary": "#1E1A16",
+        "text_secondary": "#6E6154",
+        "text_on_slice": "#F3ECDD"
+      },
+      "category_colors": {
+        "attacking": "#C24A34",
+        "possession_progression": "#5E8468",
+        "defending": "#5A79B0"
+      }
+    }
+  },
+  "brand": {
+    "show": true,
+    "name": "Argo FC Analytics",
+    "handle": "@sargo",
+    "_note": "Wordmark direction TBD from the Turn-2 logotype families (Masthead / Byline / Plate / Footnote / Spine)."
+  },
+  "attribution": {
+    "required_text": "Data: StatsBomb open data",
+    "_note": "StatsBomb open-data terms require crediting the source (ADR 0003)."
+  }
+}
