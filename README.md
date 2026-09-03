@@ -13,6 +13,11 @@ land as simple JSON files, and a web UI reads those files to draw the charts.
 The UI never talks to the data source directly — that separation is the whole
 point.
 
+
+## Live Demo
+https://argofcanalytics-ashen.vercel.app/
+
+
 ## Architecture
 
 ```
@@ -94,3 +99,5 @@ Pipeline modules live in `src/soccer_pizza_charts/` (import as
 Statistics are sourced from FBref (via the `soccerdata` library). Respect the
 source's terms of use and rate limits — the ingest layer caches aggressively so
 we fetch each thing only once.
+
+
