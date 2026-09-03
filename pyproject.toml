@@ -21,6 +21,9 @@ dependencies = [
 requires = ["uv_build>=0.12.5,<0.13.0"]
 build-backend = "uv_build"
 
+[project.scripts]
+refresh-data = "soccer_pizza_charts.pipeline:main"
+
 [dependency-groups]
 dev = [
     "pytest>=9.1.1",
