@@ -5,6 +5,39 @@ Newest entries at the top. This is for your future self — keep it low-effort.
 
 ---
 
+## 2026-09-03 — Housekeeping: STATUS.md, AGENTS.md, brand kit landed
+
+- Housekeeping session (no feature work): repo hygiene pass across both Argo FC
+  Analytics and prediction-engine.
+- Added `STATUS.md` at repo root (current phase, in-flight, next action,
+  blockers, recent decisions, deferred, cold-start notes).
+- Added `AGENTS.md` at repo root (this repo had none — conventions previously
+  lived only in `.cursor/rules/`) with a session-end rule: STATUS.md must be
+  updated in the same commit as this log entry.
+- Landed the "1b Broadsheet" brand kit that had existed only outside the repo:
+  source assets (marks, wordmarks, lockups, README) to `assets/brand/`, the
+  matplotlib build script to `scripts/branding/`, favicon set + OG card to
+  `web/public/`. Copied, not moved — originals left in place under
+  `Documents/Argo AC/`.
+- Reconciled `docs/branding/theme.broadsheet.draft.json` into `config/theme.json`
+  so it's the single token source for both the matplotlib renderer and the web
+  app, per the "don't fork the palette" rule already in this file's cold-start
+  notes.
+- Flagged, not fixed: the brand kit's `build_assets.py` generated the current
+  PNG/SVG assets from its own draft palette, which differs from the now-
+  reconciled `config/theme.json` tokens (see STATUS.md In flight / dev-log for
+  the exact hex values). The landed images are visually stale against the new
+  token file until someone re-runs the script with a synced palette — follow-up
+  work, not done this session.
+- Diffs reviewed with Sam before anything was committed; branching/commit/push
+  left to Sam per branch-protection.
+
+## 2026-08-26 — Phase 4 Part B: headless refresh-data + workflow
+
+- `uv run refresh-data` runs ingest (cache-aware) → transform → export of
+  86 player JSON files + `index.json`. GitHub Actions `refresh.yml` is
+  `workflow_dispatch` only; cron is commented until the source is a live season.
+
 ## 2026-08-25 — Phase 4 Part A: GitHub Actions pytest CI
 
 - `.github/workflows/ci.yml` runs `uv sync --locked` + `uv run pytest -q` on
